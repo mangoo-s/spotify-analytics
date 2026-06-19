@@ -20,4 +20,6 @@ public class UserService {
             throw new UserAlreadyExistsException("This user already exists.");
         }
     }
+
+
 }
