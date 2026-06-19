@@ -9,30 +9,23 @@ import com.example.spotifyscrobble.statistics.entity.TrackStatsEntity;
 import com.example.spotifyscrobble.statistics.repositories.ArtistStatsRepository;
 import com.example.spotifyscrobble.statistics.repositories.TrackStatsRepository;
 import com.example.spotifyscrobble.users.UserRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Slf4j
-public class StatisticsEventListener {
-    private final ArtistStatsRepository artistStatsRepo;
-    private final TrackStatsRepository trackStatsRepo;
-    private final UserRepository userRepo;
-    private final StatisticsService statsService;
+public class StatisticsEventListener { ;
+    private final StatisticsService statsService;;
 
-    public StatisticsEventListener(ArtistStatsRepository artistRepo, TrackStatsRepository trackRepo, UserRepository userRepo, StatisticsService statsService){
-        this.artistStatsRepo = artistRepo;
-        this.trackStatsRepo = trackRepo;
-        this.userRepo = userRepo;
+    public StatisticsEventListener( StatisticsService statsService){
         this.statsService = statsService;
     }
 
     @ApplicationModuleListener
+    @Transactional
     public void onTrackListenedEvent(TrackListenedEvent event){
         log.info("TrackListenedEvent has been received by StatisticsEventListener.");
-        ArtistStatsEntity artistStats = statsService.createNewArtistStats(event.artist());
-        TrackStatsEntity trackStats = statsService.createNewTrackStats(event.track());
-
-        artistStatsRepo.incrementTotalPlays(event.artist().getArtistId());
-        trackStatsRepo.incrementTrackPlays(event.track().getTrackId());
+        statsService.handleTrackListenedEvent(event);
+        log.info("TrackListenedEvent has been completed in StatisticsEventListener");
 
     }
 }

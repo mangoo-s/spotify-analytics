@@ -15,4 +15,12 @@ public interface ArtistStatsRepository extends JpaRepository<ArtistStatsEntity, 
     """)
     int incrementTotalPlays(@Param("artistId") Long artistId);
 
+    @Modifying
+    @Query("""
+    UPDATE ArtistStatsEntity arts
+    SET arts.listeners = arts.listeners + 1
+    WHERE arts.artistId= :artistId
+    """)
+    int incrementListeners(@Param("artistId") Long artistId);
+
 }
