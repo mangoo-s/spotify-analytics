@@ -5,8 +5,8 @@ import com.example.spotifyscrobble.catalog.TrackEntity;
 
 import java.time.Instant;
 
-public record TrackListenedEvent(Long userId, ArtistEntity artist,
-                                 TrackEntity track,
+public record TrackListenedEvent(Long userId, Long artistId,
+                                 Long trackId,
                                  Instant playedAt
 ) {
 }

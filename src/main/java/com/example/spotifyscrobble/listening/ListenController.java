@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.security.auth.login.AccountNotFoundException;
 import java.time.Instant;
 
 @RestController
@@ -17,9 +18,9 @@ public class ListenController {
 
 
     @GetMapping("/test")
-    public ResponseEntity<?> test(){
+    public ResponseEntity<?> test() throws AccountNotFoundException {
         TrackListenedRequest tst = new TrackListenedRequest(
-                0L,
+                1L,
                 1L,
                 1L,
                 Instant.now(),
