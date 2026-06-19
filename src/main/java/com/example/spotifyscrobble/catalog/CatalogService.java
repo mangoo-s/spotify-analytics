@@ -26,4 +26,10 @@ public class CatalogService {
         });
         return new CatalogEntriesExistResponse(newArtist, trackEntity);
     }
+
+    public CatalogEntriesExistResponse getCatalogEntries(Long spotifyTrackId, Long spotifyArtistId){
+        ArtistEntity artist = artistRepo.findBySpotifyId(spotifyArtistId).get();
+        TrackEntity track = trackRepo.findBySpotifyId(spotifyTrackId).get();
+        return new CatalogEntriesExistResponse(artist, track);
+    }
 }
