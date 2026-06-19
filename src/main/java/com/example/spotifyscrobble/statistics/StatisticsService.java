@@ -1,9 +1,12 @@
 package com.example.spotifyscrobble.statistics;
 
 import com.example.spotifyscrobble.catalog.ArtistEntity;
+import com.example.spotifyscrobble.catalog.CatalogEntriesExistResponse;
+import com.example.spotifyscrobble.catalog.CatalogService;
 import com.example.spotifyscrobble.catalog.TrackEntity;
 import com.example.spotifyscrobble.listening.TrackListenedEvent;
 import com.example.spotifyscrobble.users.UserEntity;
+import com.example.spotifyscrobble.users.UserRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -18,45 +21,54 @@ public class StatisticsService {
     private final ArtistStatsRepository artistStatsRepo;
     private final TrackStatsRepository trackStatsRepo;
     private final ArtistListenerRepository artistListenerRepo;
+    private final CatalogService catalogService;
+    private final UserRepository userRepo;
 
-    public StatisticsService(ArtistStatsRepository artistStatsRepo, TrackStatsRepository trackStatsRepo, ArtistListenerRepository artistListenerRepo) {
+    public StatisticsService(ArtistStatsRepository artistStatsRepo, TrackStatsRepository trackStatsRepo, ArtistListenerRepository artistListenerRepo, CatalogService catalogService, UserRepository userRepo) {
         this.artistStatsRepo = artistStatsRepo;
         this.trackStatsRepo = trackStatsRepo;
         this.artistListenerRepo = artistListenerRepo;
+        this.catalogService = catalogService;
+        this.userRepo = userRepo;
     }
 
     @Transactional
     public void handleTrackListenedEvent(TrackListenedEvent event){
-        createNewArtistStats(event.artist());
-        createNewTrackStats(event.track());
-        if(!isExistingArtistListener(event.artist(), event.user())){
-            artistStatsRepo.incrementListeners(event.artist().getArtistId());
+        CatalogEntriesExistResponse response = catalogService.getCatalogEntries(event.trackId(), event.artistId());
+        createNewArtistStats(response.artist());
+        createNewTrackStats(response.track());
+        UserEntity user = userRepo.findById(event.userId()).orElseThrow(() -> new IllegalArgumentException("User does not exist"));
+        if(!isExistingArtistListener(response.artist(), user)){
+            System.out.println("HI from if statement");
+            artistStatsRepo.incrementListeners(response.artist().getArtistId());
         };
 
-        artistStatsRepo.incrementTotalPlays(event.artist().getArtistId());
-        trackStatsRepo.incrementTrackPlays(event.track().getTrackId());
+        System.out.println("HI5");
+        artistStatsRepo.incrementTotalPlays(response.artist().getArtistId());
+        System.out.println("HI6");
+        trackStatsRepo.incrementTrackPlays(response.track().getTrackId());
 
     }
 
     public void createNewArtistStats(ArtistEntity artist){
-        try{
+        if (!artistStatsRepo.existsById(artist.getArtistId())) {
             artistStatsRepo.save(new ArtistStatsEntity(artist));
-        } catch(DataIntegrityViolationException ignored){}
+        }
     }
 
     public void createNewTrackStats(TrackEntity track){
-        try{
+        if (!trackStatsRepo.existsById(track.getTrackId())) {
             trackStatsRepo.save(new TrackStatsEntity(track));
-        } catch(DataIntegrityViolationException ignored){}
+        }
     }
 
     public boolean isExistingArtistListener(ArtistEntity artist, UserEntity user){
         try {
-            if(artistListenerRepo.existsByArtist_ArtistIdAndUser_UserId(artist.getArtistId(), user.getUserId())){
-                return true;
+            if(!artistListenerRepo.existsByArtist_ArtistIdAndUser_UserId(artist.getArtistId(), user.getUserId())){
+                artistListenerRepo.save(new ArtistListenerEntity(artist, user));
+                return false;
             }
-            artistListenerRepo.save(new ArtistListenerEntity(artist, user));
-            return false;
+            return true;
         } catch (DataIntegrityViolationException ignored) {
             return true;
         }

@@ -21,7 +21,6 @@ public class StatisticsEventListener { ;
     }
 
     @ApplicationModuleListener
-    @Transactional
     public void onTrackListenedEvent(TrackListenedEvent event){
         log.info("TrackListenedEvent has been received by StatisticsEventListener.");
         statsService.handleTrackListenedEvent(event);

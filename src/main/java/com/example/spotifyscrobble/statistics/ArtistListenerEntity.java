@@ -8,7 +8,7 @@ import jakarta.persistence.*;
 @Table(name = "artist_listeners", uniqueConstraints = {@UniqueConstraint(
         columnNames = {"artist_id", "user_id"}
 )})
-public class    ArtistListenerEntity {
+public class ArtistListenerEntity {
     @Id
     @GeneratedValue
     private Long id;
