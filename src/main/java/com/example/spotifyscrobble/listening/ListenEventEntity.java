@@ -1,9 +1,7 @@
 package com.example.spotifyscrobble.listening;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.example.spotifyscrobble.users.UserEntity;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import org.springframework.data.annotation.CreatedDate;
@@ -12,13 +10,15 @@ import java.time.Instant;
 
 @Getter
 @Entity
+@Table(name = "listening_history")
 public class ListenEventEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long eventId;
 
-    @NotNull(message = "UserId cannot be null")
-    private Long userId;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
 
     @NotNull(message = "ArtistId cannot be null")
     private Long spotifyArtistId;
@@ -34,8 +34,8 @@ public class ListenEventEntity {
 
     protected ListenEventEntity() { }
 
-    public ListenEventEntity(Long userId, Long spotifyTrackId, Long spotifyArtistId, Instant playedAt) {
-        this.userId = userId;
+    public ListenEventEntity(UserEntity user, Long spotifyTrackId, Long spotifyArtistId, Instant playedAt) {
+        this.user = user;
         this.spotifyTrackId = spotifyTrackId;
         this.spotifyArtistId = spotifyArtistId;
         this.playedAt = playedAt;

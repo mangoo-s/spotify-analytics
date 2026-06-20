@@ -1,16 +1,12 @@
 package com.example.spotifyscrobble.listening;
 
-import com.example.spotifyscrobble.catalog.CatalogEntriesExistResponse;
 import com.example.spotifyscrobble.catalog.CatalogService;
-import com.example.spotifyscrobble.shared.UserAlreadyExistsException;
 import com.example.spotifyscrobble.users.UserEntity;
 import com.example.spotifyscrobble.users.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.security.auth.login.AccountNotFoundException;
 
 @Service
 @Slf4j
@@ -28,9 +24,11 @@ public class ListeningService {
     }
 
     @Transactional
-    public void processTrackListen(TrackListenedRequest trackListenedRequest) throws AccountNotFoundException {
-        ListenEventEntity entity = new ListenEventEntity(trackListenedRequest.userId(), trackListenedRequest.spotifyTrackId(), trackListenedRequest.spotifyArtistId(), trackListenedRequest.playedAt());
+    public void processTrackListen(TrackListenedRequest trackListenedRequest) {
+        UserEntity user = userRepo.findById(trackListenedRequest.userId()).orElseThrow(() -> new IllegalArgumentException("this user does not exist"));
+        ListenEventEntity entity = new ListenEventEntity(user, trackListenedRequest.spotifyTrackId(), trackListenedRequest.spotifyArtistId(), trackListenedRequest.playedAt());
         eventRepo.save(entity);
+
         TrackListenedEvent event = new TrackListenedEvent(
                 trackListenedRequest.userId(),
                 trackListenedRequest.spotifyArtistId(),
