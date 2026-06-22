@@ -4,6 +4,7 @@ import com.example.spotifyscrobble.users.UserEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import org.hibernate.annotations.ColumnDefault;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.Instant;
@@ -20,6 +21,12 @@ public class ListenEventEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
+    @NotNull(message = "Artist name cannot be null")
+    private String artistName;
+
+    @NotNull(message = "Track name cannot be null")
+    private String trackName;
+
     @NotNull(message = "ArtistId cannot be null")
     private Long spotifyArtistId;
 
@@ -34,8 +41,10 @@ public class ListenEventEntity {
 
     protected ListenEventEntity() { }
 
-    public ListenEventEntity(UserEntity user, Long spotifyTrackId, Long spotifyArtistId, Instant playedAt) {
+    public ListenEventEntity(UserEntity user, String artistName, String trackName, Long spotifyTrackId, Long spotifyArtistId, Instant playedAt) {
         this.user = user;
+        this.trackName = trackName;
+        this.artistName = artistName;
         this.spotifyTrackId = spotifyTrackId;
         this.spotifyArtistId = spotifyArtistId;
         this.playedAt = playedAt;
