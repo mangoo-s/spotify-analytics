@@ -2,6 +2,7 @@ package com.example.spotifyscrobble.listening;
 
 import com.example.spotifyscrobble.users.UserEntity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import org.hibernate.annotations.ColumnDefault;
@@ -21,10 +22,10 @@ public class ListenEventEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    @NotNull(message = "Artist name cannot be null")
+    @NotBlank(message = "Artist name cannot be null")
     private String artistName;
 
-    @NotNull(message = "Track name cannot be null")
+    @NotBlank(message = "Track name cannot be null")
     private String trackName;
 
     @NotNull(message = "ArtistId cannot be null")
