@@ -2,6 +2,9 @@ package com.example.spotifyscrobble.catalog;
 
 import com.example.spotifyscrobble.catalog.Dto.ArtistCreatedRequest;
 import com.example.spotifyscrobble.catalog.Dto.ArtistCreatedResponse;
+import com.example.spotifyscrobble.catalog.Dto.TrackCreatedRequest;
+import com.example.spotifyscrobble.catalog.Dto.TrackCreatedResponse;
+import com.example.spotifyscrobble.shared.ArtistNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -31,5 +34,13 @@ public class CatalogService {
         artist = artistRepo.save(artist);
         events.publishEvent(new ArtistCreatedEvent(artist));
         return new ArtistCreatedResponse(artist.getSpotifyId(), artist.getName());
+    }
+
+    public TrackCreatedResponse createTrack(TrackCreatedRequest trackCreatedRequest){
+        ArtistEntity artist = artistRepo.findBySpotifyId(trackCreatedRequest.spotifyId()).orElseThrow(() -> new ArtistNotFoundException("Artist with spotifyId "+trackCreatedRequest.spotifyId()+" does not exist therefore the track could not be created. Please create an artist first and then create a track under that artist."));
+        TrackEntity track = new TrackEntity(trackCreatedRequest.spotifyId(), artist, trackCreatedRequest.title(), trackCreatedRequest.duration());
+        track = trackRepo.save(track);
+        //Create event
+        return new TrackCreatedResponse(track.getSpotifyId(), track.getTitle(), artist.getName(), track.getDuration());
     }
 }
