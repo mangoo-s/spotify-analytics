@@ -11,10 +11,18 @@ import java.time.Instant;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<?>userAlreadyExists(UserAlreadyExistsException ex){
+    public ResponseEntity<ErrorResponse>userAlreadyExists(UserAlreadyExistsException ex){
         return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(
                 ex.getMessage(),
                 Instant.now())
         );
+    }
+
+    @ExceptionHandler(ArtistNotFoundException.class)
+    public ResponseEntity<ErrorResponse> artistNotFound(ArtistNotFoundException ex){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(
+                ex.getMessage(),
+                Instant.now()
+        ));
     }
 }
