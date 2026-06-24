@@ -22,13 +22,13 @@ public class ListenController {
     }
 
     @GetMapping("/users/{id}/history")
-    public ResponseEntity<?> getListeningHistory(@PathVariable Long id, Pageable p){
+    public ResponseEntity<CustomPageResponse<ListeningHistoryResponse>> getListeningHistory(@PathVariable Long id, Pageable p){
         CustomPageResponse<ListeningHistoryResponse> response = listeningService.getUserListeningHistory(id, p);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/test")
-    public ResponseEntity<?> test() throws AccountNotFoundException {
+    public ResponseEntity<?> test() {
         TrackListenedRequest tst = new TrackListenedRequest(
                 1L,
                 1L,

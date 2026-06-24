@@ -1,6 +1,5 @@
 package com.example.spotifyscrobble.listening;
 
-import com.example.spotifyscrobble.catalog.CatalogService;
 import com.example.spotifyscrobble.shared.CustomPageResponse;
 import com.example.spotifyscrobble.users.UserEntity;
 import com.example.spotifyscrobble.users.UserRepository;
@@ -16,13 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class ListeningService {
     private final ApplicationEventPublisher events;
     private final ListeningHistoryRepository listeningHistoryRepo;
-    private final CatalogService catalogService;
     private final UserRepository userRepo;
 
-    public ListeningService(ApplicationEventPublisher events, ListeningHistoryRepository listeningHistoryRepo, CatalogService catalogService, UserRepository userRepo){
+    public ListeningService(ApplicationEventPublisher events, ListeningHistoryRepository listeningHistoryRepo, UserRepository userRepo){
         this.events = events;
         this.listeningHistoryRepo = listeningHistoryRepo;
-        this.catalogService = catalogService;
         this.userRepo = userRepo;
     }
 
