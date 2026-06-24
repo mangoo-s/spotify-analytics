@@ -16,6 +16,7 @@ import com.example.spotifyscrobble.statistics.repositories.TrackStatsRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class StatisticsService {
     private final ArtistStatsRepository artistStatsRepo;
     private final TrackStatsRepository trackStatsRepo;
@@ -31,7 +32,6 @@ public class StatisticsService {
         this.userRepo = userRepo;
     }
 
-    @Transactional
     public void handleTrackListenedEvent(TrackListenedEvent event){
         CatalogEntriesExistResponse response = catalogService.getCatalogEntries(event.trackId(), event.artistId());
         initializeNewArtistStats(response.artist());
