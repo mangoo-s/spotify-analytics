@@ -25,4 +25,12 @@ public class GlobalExceptionHandler {
                 Instant.now()
         ));
     }
+
+    @ExceptionHandler(ArtistAlreadyExists.class)
+    public ResponseEntity<ErrorResponse> artistAlreadyExists(ArtistAlreadyExists ex){
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(
+                ex.getMessage(),
+                Instant.now()
+        ));
+    }
 }
