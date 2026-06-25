@@ -4,6 +4,7 @@ import com.example.spotifyscrobble.catalog.Dto.ArtistCreatedRequest;
 import com.example.spotifyscrobble.catalog.Dto.ArtistCreatedResponse;
 import com.example.spotifyscrobble.catalog.Dto.TrackCreatedRequest;
 import com.example.spotifyscrobble.catalog.Dto.TrackCreatedResponse;
+import com.example.spotifyscrobble.shared.ArtistAlreadyExists;
 import com.example.spotifyscrobble.shared.ArtistNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,6 +30,8 @@ public class CatalogService {
     }
 
     public ArtistCreatedResponse createArtist(ArtistCreatedRequest artistCreatedRequest) {
+        if(artistRepo.existsBySpotifyId(artistCreatedRequest.spotifyId())) { throw new ArtistAlreadyExists("This artist already exists."); }
+
         ArtistEntity artist = new ArtistEntity(artistCreatedRequest.name(), artistCreatedRequest.spotifyId());
         log.info("Created new artist: {} with spotifyId: {}", artistCreatedRequest.name(), artistCreatedRequest.spotifyId());
         artist = artistRepo.save(artist);
@@ -40,6 +43,7 @@ public class CatalogService {
         ArtistEntity artist = artistRepo.findBySpotifyId(trackCreatedRequest.spotifyId()).orElseThrow(() -> new ArtistNotFoundException("Artist with spotifyId "+trackCreatedRequest.spotifyId()+" does not exist therefore the track could not be created. Please create an artist first and then create a track under that artist."));
         TrackEntity track = new TrackEntity(trackCreatedRequest.spotifyId(), artist, trackCreatedRequest.title(), trackCreatedRequest.duration());
         track = trackRepo.save(track);
+        log.info("Created new track with title: {} and artistSpotifyId: {} and trackSpotifyId: {}", trackCreatedRequest.title(), artist.getSpotifyId(), trackCreatedRequest.spotifyId());
         //Create event
         return new TrackCreatedResponse(track.getSpotifyId(), track.getTitle(), artist.getName(), track.getDuration());
     }
