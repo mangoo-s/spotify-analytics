@@ -23,7 +23,7 @@ public class ListenController {
 
     @GetMapping("/users/{id}/history")
     public ResponseEntity<CustomPageResponse<ListeningHistoryResponse>> getListeningHistory(@PathVariable Long id, Pageable p){
-        CustomPageResponse<ListeningHistoryResponse> response = listeningService.getUserListeningHistory(id, p);
+        CustomPageResponse<ListeningHistoryResponse> response = listeningService.getUserListeningHistory(id, p); //N+1 query need to fix
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
