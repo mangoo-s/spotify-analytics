@@ -21,7 +21,7 @@ public class ArtistStatsEntity {
     protected ArtistStatsEntity() {}
 
     public ArtistStatsEntity(ArtistEntity artist){
-        this.totalPlays = 0L;
+        this.totalPlays = 1L;
         this.listeners = 0L;
         this.artist = artist;
 
