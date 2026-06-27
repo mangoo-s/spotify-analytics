@@ -1,10 +1,10 @@
 package com.example.spotifyscrobble.statistics;
 
-import com.example.spotifyscrobble.catalog.ArtistEntity;
-import com.example.spotifyscrobble.catalog.CatalogEntriesExistResponse;
-import com.example.spotifyscrobble.catalog.CatalogService;
-import com.example.spotifyscrobble.catalog.TrackEntity;
+import com.example.spotifyscrobble.catalog.*;
 import com.example.spotifyscrobble.listening.TrackListenedEvent;
+import com.example.spotifyscrobble.statistics.entity.UserArtistStatsEntity;
+import com.example.spotifyscrobble.statistics.entity.UserArtistStatsId;
+import com.example.spotifyscrobble.statistics.repositories.UserArtistStatsRepository;
 import com.example.spotifyscrobble.users.UserEntity;
 import com.example.spotifyscrobble.users.UserRepository;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -21,29 +21,30 @@ public class StatisticsService {
     private final ArtistStatsRepository artistStatsRepo;
     private final TrackStatsRepository trackStatsRepo;
     private final ArtistListenerRepository artistListenerRepo;
-    private final CatalogService catalogService;
     private final UserRepository userRepo;
+    private final UserArtistStatsRepository userArtistStatsRepo;
 
-    public StatisticsService(ArtistStatsRepository artistStatsRepo, TrackStatsRepository trackStatsRepo, ArtistListenerRepository artistListenerRepo, CatalogService catalogService, UserRepository userRepo) {
+    public StatisticsService(ArtistStatsRepository artistStatsRepo, TrackStatsRepository trackStatsRepo, ArtistListenerRepository artistListenerRepo, UserRepository userRepo, UserArtistStatsRepository userArtistStatsRepo) {
         this.artistStatsRepo = artistStatsRepo;
         this.trackStatsRepo = trackStatsRepo;
         this.artistListenerRepo = artistListenerRepo;
-        this.catalogService = catalogService;
         this.userRepo = userRepo;
+        this.userArtistStatsRepo = userArtistStatsRepo;
     }
 
-    public void handleTrackListenedEvent(TrackListenedEvent event){
-        CatalogEntriesExistResponse response = catalogService.getCatalogEntries(event.trackId(), event.artistId());
-        initializeNewArtistStats(response.artist());
-        initializeNewTrackStats(response.track());
+    public void handleTrackListenedEvent(CatalogEntriesResolvedEvent event){
+        initializeNewArtistStats(event.artist());
+        initializeNewTrackStats(event.track());
 
         UserEntity user = userRepo.findById(event.userId()).orElseThrow(() -> new IllegalArgumentException("User does not exist"));
-        if(!isExistingArtistListener(response.artist(), user)){
-            artistStatsRepo.incrementListeners(response.artist().getArtistId());
-        };
+        initializeNewUserArtistStatsOrIncrement(event.userId(), event.artist().getArtistId());
 
-        artistStatsRepo.incrementTotalPlays(response.artist().getArtistId());
-        trackStatsRepo.incrementTrackPlays(response.track().getTrackId());
+        if(!isExistingArtistListener(event.artist(), user)){
+            artistStatsRepo.incrementListeners(event.artist().getArtistId());
+        }else{
+            artistStatsRepo.incrementTotalPlays(event.artist().getArtistId());
+            trackStatsRepo.incrementTrackPlays(event.track().getTrackId());
+        };
 
     }
 
@@ -69,5 +70,13 @@ public class StatisticsService {
         } catch (DataIntegrityViolationException ignored) {
             return true;
         }
+    }
+
+    public void initializeNewUserArtistStatsOrIncrement(Long userId, Long artistId){
+        UserArtistStatsId id = new UserArtistStatsId(userId, artistId);
+        userArtistStatsRepo.findById(id).ifPresentOrElse(
+                stats -> userArtistStatsRepo.incrementTotalPlays(id),
+                () -> userArtistStatsRepo.save(new UserArtistStatsEntity(id)) // just save, no increment
+        );
     }
 }

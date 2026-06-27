@@ -1,7 +1,7 @@
 package com.example.spotifyscrobble.statistics;
 
 import com.example.spotifyscrobble.catalog.ArtistCreatedEvent;
-import com.example.spotifyscrobble.listening.TrackListenedEvent;
+import com.example.spotifyscrobble.catalog.CatalogEntriesResolvedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
@@ -16,10 +16,10 @@ public class StatisticsEventListener { ;
     }
 
     @ApplicationModuleListener
-    public void onTrackListenedEvent(TrackListenedEvent event){
-        log.info("TrackListenedEvent has been received by StatisticsEventListener.");
+    public void onCatalogEntriesResolvedEvent(CatalogEntriesResolvedEvent event){
+        log.info("CatalogEntriesResolvedEvent has been received by StatisticsEventListener.");
         statsService.handleTrackListenedEvent(event);
-        log.info("TrackListenedEvent has been completed in StatisticsEventListener");
+        log.info("CatalogEntriesResolvedEvent has been completed in StatisticsEventListener");
 
     }
 
