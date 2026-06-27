@@ -29,13 +29,13 @@ public class ListenController {
 
     @GetMapping("/test")
     public ResponseEntity<?> test() {
-        TrackListenedRequest tst = new TrackListenedRequest(
+        TrackListenedEvent tst = new TrackListenedEvent(
                 1L,
-                1L,
-                1L,
+                2L,
+                2L,
                 Instant.now(),
-                "Drake",
-                "Jungle"
+                "Bladee",
+                "Unreal"
         );
         listeningService.processTrackListen(tst);
         return ResponseEntity.status(HttpStatus.OK).body("tested");

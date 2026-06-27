@@ -24,18 +24,12 @@ public class ListeningService {
     }
 
     @Transactional
-    public void processTrackListen(TrackListenedRequest trackListenedRequest) {
-        UserEntity user = userRepo.findById(trackListenedRequest.userId()).orElseThrow(() -> new IllegalArgumentException("this user does not exist"));
-        ListenEventEntity entity = new ListenEventEntity(user, trackListenedRequest.artistName(),trackListenedRequest.trackName(), trackListenedRequest.spotifyTrackId(), trackListenedRequest.spotifyArtistId(), trackListenedRequest.playedAt());
+    public void processTrackListen(TrackListenedEvent event) {
+        UserEntity user = userRepo.findById(event.userId()).orElseThrow(() -> new IllegalArgumentException("this user does not exist"));
+        ListenEventEntity entity = new ListenEventEntity(user, event.artistName(),event.trackName(), event.spotifyTrackId(), event.spotifyArtistId(), event.playedAt());
         listeningHistoryRepo.save(entity);
 
-        TrackListenedEvent event = new TrackListenedEvent(
-                trackListenedRequest.userId(),
-                trackListenedRequest.spotifyArtistId(),
-                trackListenedRequest.spotifyTrackId(),
-                trackListenedRequest.playedAt()
-        );
-        log.info("User {}'s track event is being published.", trackListenedRequest.userId());
+        log.info("User {}'s track event is being published.", event.userId());
         events.publishEvent(event);
     }
 
