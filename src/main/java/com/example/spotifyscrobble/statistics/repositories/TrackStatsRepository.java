@@ -15,4 +15,12 @@ public interface TrackStatsRepository extends JpaRepository<TrackStatsEntity, Lo
     WHERE ts.trackId = :trackId
     """)
     int incrementTrackPlays(@Param("trackId") Long trackId);
+
+    @Modifying
+    @Query("""
+    UPDATE TrackStatsEntity arts
+    SET arts.listeners = arts.listeners + 1
+    WHERE arts.trackId= :trackId
+    """)
+    int incrementListeners(@Param("trackId") Long trackId);
 }
