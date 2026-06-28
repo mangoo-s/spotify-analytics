@@ -2,21 +2,23 @@ package com.example.spotifyscrobble.statistics.entity;
 
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 import java.time.Instant;
 
 @Entity
-public class UserTrackEntity {
+@Table(name = "user_track_stats")
+public class UserTrackStatsEntity {
 
     @EmbeddedId
-    private UserTrackId id;
+    private UserTrackStatsId id;
 
     private Long playCount;
     private Instant lastListenedAt;
 
-    protected UserTrackEntity() {}
+    protected UserTrackStatsEntity() {}
 
-    public UserTrackEntity(UserTrackId id){
+    public UserTrackStatsEntity(UserTrackStatsId id){
         this.id = id;
         this.playCount = 1L;
         this.lastListenedAt = Instant.now();
