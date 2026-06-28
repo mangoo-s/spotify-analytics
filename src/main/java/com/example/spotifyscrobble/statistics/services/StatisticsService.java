@@ -1,15 +1,12 @@
-package com.example.spotifyscrobble.statistics;
+package com.example.spotifyscrobble.statistics.services;
 
 import com.example.spotifyscrobble.catalog.*;
 import com.example.spotifyscrobble.statistics.entities.*;
-import com.example.spotifyscrobble.statistics.repositories.UserArtistStatsRepository;
-import com.example.spotifyscrobble.statistics.repositories.UserTrackStatsRepository;
-import com.example.spotifyscrobble.users.UserEntity;
-import com.example.spotifyscrobble.users.UserRepository;
+import com.example.spotifyscrobble.statistics.repositories.*;
+import com.example.spotifyscrobble.users.UsersApi;
+import com.example.spotifyscrobble.users.entity.UserEntity;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import com.example.spotifyscrobble.statistics.repositories.ArtistStatsRepository;
-import com.example.spotifyscrobble.statistics.repositories.TrackStatsRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -18,33 +15,31 @@ public class StatisticsService {
     private final ArtistStatsRepository artistStatsRepo;
     private final TrackStatsRepository trackStatsRepo;
     private final ArtistListenerRepository artistListenerRepo;
-    private final UserRepository userRepo;
     private final UserArtistStatsRepository userArtistStatsRepo;
     private final UserTrackStatsRepository userTrackStatsRepository;
+    private final UsersApi usersApi;
 
-    public StatisticsService(ArtistStatsRepository artistStatsRepo, TrackStatsRepository trackStatsRepo, ArtistListenerRepository artistListenerRepo, UserRepository userRepo, UserArtistStatsRepository userArtistStatsRepo, UserTrackStatsRepository userTrackStatsRepository) {
+    public StatisticsService(ArtistStatsRepository artistStatsRepo, TrackStatsRepository trackStatsRepo, ArtistListenerRepository artistListenerRepo, UserArtistStatsRepository userArtistStatsRepo, UserTrackStatsRepository userTrackStatsRepository, UsersApi usersApi) {
         this.artistStatsRepo = artistStatsRepo;
         this.trackStatsRepo = trackStatsRepo;
         this.artistListenerRepo = artistListenerRepo;
-        this.userRepo = userRepo;
         this.userArtistStatsRepo = userArtistStatsRepo;
         this.userTrackStatsRepository = userTrackStatsRepository;
+        this.usersApi = usersApi;
     }
 
     public void handleTrackListenedEvent(CatalogEntriesResolvedEvent event){
         initializeNewArtistStats(event.artistId());
         initializeNewTrackStats(event.trackId());
 
-        UserEntity user = userRepo.findById(event.userId()).orElseThrow(() -> new IllegalArgumentException("User does not exist"));
         initializeNewUserArtistStatsOrIncrement(event.userId(), event.artistId());
         initializeNewUserTrackStatsOrIncrement(event.userId(), event.trackId());
 
         if(!isExistingArtistListener(event.artistId(), event.userId())){
             artistStatsRepo.incrementListeners(event.artistId());
-        }else{
-            artistStatsRepo.incrementTotalPlays(event.artistId());
-            trackStatsRepo.incrementTrackPlays(event.trackId());
-        };
+        }
+        artistStatsRepo.incrementTotalPlays(event.artistId());
+        trackStatsRepo.incrementTrackPlays(event.trackId());
 
     }
 
@@ -62,7 +57,7 @@ public class StatisticsService {
 
     public boolean isExistingArtistListener(Long artistId, Long userId){
         try {
-            if(!artistListenerRepo.existsByArtist_ArtistIdAndUser_UserId(artistId, userId)){
+            if(!artistListenerRepo.existsByArtistIdAndUserId(artistId, userId)){
                 artistListenerRepo.save(new ArtistListenerEntity(artistId, userId));
                 return false;
             }

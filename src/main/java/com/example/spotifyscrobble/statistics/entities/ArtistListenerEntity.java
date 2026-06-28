@@ -1,7 +1,5 @@
 package com.example.spotifyscrobble.statistics.entities;
 
-import com.example.spotifyscrobble.catalog.ArtistEntity;
-import com.example.spotifyscrobble.users.UserEntity;
 import jakarta.persistence.*;
 
 @Entity
@@ -13,19 +11,14 @@ public class ArtistListenerEntity {
     @GeneratedValue
     private Long id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id")
-    private UserEntity user;
-
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "artist_id")
-    private ArtistEntity artist;
+    private Long userId;
+    private Long artistId;
 
     protected ArtistListenerEntity() {}
 
-    public ArtistListenerEntity(ArtistEntity artist, UserEntity user){
-        this.artist = artist;
-        this.user = user;
+    public ArtistListenerEntity(Long artistId, Long userId){
+        this.artistId = artistId;
+        this.userId = userId;
     }
 
 }
