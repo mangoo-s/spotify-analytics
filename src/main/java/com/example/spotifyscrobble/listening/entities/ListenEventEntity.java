@@ -1,6 +1,6 @@
 package com.example.spotifyscrobble.listening.entities;
 
-import com.example.spotifyscrobble.users.UserEntity;
+import com.example.spotifyscrobble.users.entity.UserEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
