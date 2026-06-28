@@ -1,8 +1,8 @@
 package com.example.spotifyscrobble.catalog.eventlistener;
 
 import com.example.spotifyscrobble.catalog.CatalogEntriesResolvedEvent;
-import com.example.spotifyscrobble.catalog.ArtistEntity;
-import com.example.spotifyscrobble.catalog.TrackEntity;
+import com.example.spotifyscrobble.catalog.entity.ArtistEntity;
+import com.example.spotifyscrobble.catalog.entity.TrackEntity;
 import com.example.spotifyscrobble.catalog.repository.ArtistRepository;
 import com.example.spotifyscrobble.catalog.repository.TrackRepository;
 import com.example.spotifyscrobble.listening.TrackListenedEvent;
@@ -35,6 +35,6 @@ public class CatalogEventListener {
                 () -> trackRepo.save(new TrackEntity(event.spotifyTrackId(), artist, event.trackName(), 0L))
         );
         log.info("TrackListenedEvent has been Completed by StatisticsEventListener. Now publishing CatalogEntriesResolvedEvent.");
-        events.publishEvent(new CatalogEntriesResolvedEvent(event.userId(), artist, track));
+        events.publishEvent(new CatalogEntriesResolvedEvent(event.userId(), artist.getArtistId(), track.getTrackId()));
     }
 }

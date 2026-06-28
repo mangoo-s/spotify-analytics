@@ -1,8 +1,8 @@
 package com.example.spotifyscrobble.catalog.service;
 
 import com.example.spotifyscrobble.catalog.ArtistCreatedEvent;
-import com.example.spotifyscrobble.catalog.ArtistEntity;
-import com.example.spotifyscrobble.catalog.TrackEntity;
+import com.example.spotifyscrobble.catalog.entity.ArtistEntity;
+import com.example.spotifyscrobble.catalog.entity.TrackEntity;
 import com.example.spotifyscrobble.catalog.internalDto.ArtistCreatedRequest;
 import com.example.spotifyscrobble.catalog.internalDto.ArtistCreatedResponse;
 import com.example.spotifyscrobble.catalog.internalDto.TrackCreatedRequest;

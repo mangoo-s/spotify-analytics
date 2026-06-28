@@ -1,8 +1,6 @@
 package com.example.spotifyscrobble.statistics;
 
 import com.example.spotifyscrobble.catalog.*;
-import com.example.spotifyscrobble.catalog.ArtistEntity;
-import com.example.spotifyscrobble.catalog.TrackEntity;
 import com.example.spotifyscrobble.statistics.entities.*;
 import com.example.spotifyscrobble.statistics.repositories.UserArtistStatsRepository;
 import com.example.spotifyscrobble.statistics.repositories.UserTrackStatsRepository;
@@ -34,38 +32,38 @@ public class StatisticsService {
     }
 
     public void handleTrackListenedEvent(CatalogEntriesResolvedEvent event){
-        initializeNewArtistStats(event.artist());
-        initializeNewTrackStats(event.track());
+        initializeNewArtistStats(event.artistId());
+        initializeNewTrackStats(event.trackId());
 
         UserEntity user = userRepo.findById(event.userId()).orElseThrow(() -> new IllegalArgumentException("User does not exist"));
-        initializeNewUserArtistStatsOrIncrement(event.userId(), event.artist().getArtistId());
-        initializeNewUserTrackStatsOrIncrement(event.userId(), event.track().getTrackId());
+        initializeNewUserArtistStatsOrIncrement(event.userId(), event.artistId());
+        initializeNewUserTrackStatsOrIncrement(event.userId(), event.trackId());
 
-        if(!isExistingArtistListener(event.artist(), user)){
-            artistStatsRepo.incrementListeners(event.artist().getArtistId());
+        if(!isExistingArtistListener(event.artistId(), event.userId())){
+            artistStatsRepo.incrementListeners(event.artistId());
         }else{
-            artistStatsRepo.incrementTotalPlays(event.artist().getArtistId());
-            trackStatsRepo.incrementTrackPlays(event.track().getTrackId());
+            artistStatsRepo.incrementTotalPlays(event.artistId());
+            trackStatsRepo.incrementTrackPlays(event.trackId());
         };
 
     }
 
-    public void initializeNewArtistStats(ArtistEntity artist){
-        if (!artistStatsRepo.existsById(artist.getArtistId())) {
-            artistStatsRepo.save(new ArtistStatsEntity(artist));
+    public void initializeNewArtistStats(Long artistId){
+        if (!artistStatsRepo.existsById(artistId)) {
+            artistStatsRepo.save(new ArtistStatsEntity(artistId));
         }
     }
 
-    public void initializeNewTrackStats(TrackEntity track){
-        if (!trackStatsRepo.existsById(track.getTrackId())) {
-            trackStatsRepo.save(new TrackStatsEntity(track));
+    public void initializeNewTrackStats(Long trackId){
+        if (!trackStatsRepo.existsById(trackId)) {
+            trackStatsRepo.save(new TrackStatsEntity(trackId));
         }
     }
 
-    public boolean isExistingArtistListener(ArtistEntity artist, UserEntity user){
+    public boolean isExistingArtistListener(Long artistId, Long userId){
         try {
-            if(!artistListenerRepo.existsByArtist_ArtistIdAndUser_UserId(artist.getArtistId(), user.getUserId())){
-                artistListenerRepo.save(new ArtistListenerEntity(artist, user));
+            if(!artistListenerRepo.existsByArtist_ArtistIdAndUser_UserId(artistId, userId)){
+                artistListenerRepo.save(new ArtistListenerEntity(artistId, userId));
                 return false;
             }
             return true;

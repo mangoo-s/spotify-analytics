@@ -1,6 +1,6 @@
 package com.example.spotifyscrobble.catalog.repository;
 
-import com.example.spotifyscrobble.catalog.ArtistEntity;
+import com.example.spotifyscrobble.catalog.entity.ArtistEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
