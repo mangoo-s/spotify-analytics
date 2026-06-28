@@ -1,4 +1,4 @@
-package com.example.spotifyscrobble.users;
+package com.example.spotifyscrobble.users.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

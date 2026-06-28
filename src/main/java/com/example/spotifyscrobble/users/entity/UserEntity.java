@@ -1,4 +1,4 @@
-package com.example.spotifyscrobble.users;
+package com.example.spotifyscrobble.users.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;

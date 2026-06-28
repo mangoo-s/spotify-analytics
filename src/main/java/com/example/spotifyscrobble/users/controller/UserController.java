@@ -1,5 +1,7 @@
-package com.example.spotifyscrobble.users;
+package com.example.spotifyscrobble.users.controller;
 
+import com.example.spotifyscrobble.users.dto.UserRegisterRequest;
+import com.example.spotifyscrobble.users.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,5 +1,6 @@
-package com.example.spotifyscrobble.users;
+package com.example.spotifyscrobble.users.repository;
 
+import com.example.spotifyscrobble.users.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
