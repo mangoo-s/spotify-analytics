@@ -31,11 +31,11 @@ public class ListenController {
     public ResponseEntity<?> test() {
         TrackListenedEvent tst = new TrackListenedEvent(
                 1L,
-                2L,
+                3L,
                 2L,
                 Instant.now(),
                 "Bladee",
-                "Unreal"
+                "Psycho"
         );
         listeningService.processTrackListen(tst);
         return ResponseEntity.status(HttpStatus.OK).body("tested");
