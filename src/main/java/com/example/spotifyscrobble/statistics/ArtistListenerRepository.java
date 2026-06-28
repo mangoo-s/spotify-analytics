@@ -1,5 +1,6 @@
 package com.example.spotifyscrobble.statistics;
 
+import com.example.spotifyscrobble.statistics.entities.ArtistListenerEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 

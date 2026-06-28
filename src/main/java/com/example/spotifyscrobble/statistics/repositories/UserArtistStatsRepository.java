@@ -1,7 +1,7 @@
 package com.example.spotifyscrobble.statistics.repositories;
 
-import com.example.spotifyscrobble.statistics.entity.UserArtistStatsEntity;
-import com.example.spotifyscrobble.statistics.entity.UserArtistStatsId;
+import com.example.spotifyscrobble.statistics.entities.UserArtistStatsEntity;
+import com.example.spotifyscrobble.statistics.entities.UserArtistStatsId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

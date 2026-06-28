@@ -1,4 +1,4 @@
-package com.example.spotifyscrobble.catalog.Dto;
+package com.example.spotifyscrobble.catalog.internalDto;
 
 public record TrackCreatedResponse(
         Long spotifyId,

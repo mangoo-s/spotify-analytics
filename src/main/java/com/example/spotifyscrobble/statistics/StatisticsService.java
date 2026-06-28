@@ -1,7 +1,9 @@
 package com.example.spotifyscrobble.statistics;
 
 import com.example.spotifyscrobble.catalog.*;
-import com.example.spotifyscrobble.statistics.entity.*;
+import com.example.spotifyscrobble.catalog.ArtistEntity;
+import com.example.spotifyscrobble.catalog.TrackEntity;
+import com.example.spotifyscrobble.statistics.entities.*;
 import com.example.spotifyscrobble.statistics.repositories.UserArtistStatsRepository;
 import com.example.spotifyscrobble.statistics.repositories.UserTrackStatsRepository;
 import com.example.spotifyscrobble.users.UserEntity;

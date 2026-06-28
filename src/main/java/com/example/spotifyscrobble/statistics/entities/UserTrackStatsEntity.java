@@ -1,4 +1,4 @@
-package com.example.spotifyscrobble.statistics.entity;
+package com.example.spotifyscrobble.statistics.entities;
 
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;

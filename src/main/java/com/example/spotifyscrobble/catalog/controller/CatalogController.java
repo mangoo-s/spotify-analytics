@@ -1,9 +1,10 @@
-package com.example.spotifyscrobble.catalog;
+package com.example.spotifyscrobble.catalog.controller;
 
-import com.example.spotifyscrobble.catalog.Dto.ArtistCreatedRequest;
-import com.example.spotifyscrobble.catalog.Dto.ArtistCreatedResponse;
-import com.example.spotifyscrobble.catalog.Dto.TrackCreatedRequest;
-import com.example.spotifyscrobble.catalog.Dto.TrackCreatedResponse;
+import com.example.spotifyscrobble.catalog.service.CatalogService;
+import com.example.spotifyscrobble.catalog.internalDto.ArtistCreatedRequest;
+import com.example.spotifyscrobble.catalog.internalDto.ArtistCreatedResponse;
+import com.example.spotifyscrobble.catalog.internalDto.TrackCreatedRequest;
+import com.example.spotifyscrobble.catalog.internalDto.TrackCreatedResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

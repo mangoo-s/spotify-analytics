@@ -1,5 +1,10 @@
-package com.example.spotifyscrobble.catalog;
+package com.example.spotifyscrobble.catalog.eventlistener;
 
+import com.example.spotifyscrobble.catalog.CatalogEntriesResolvedEvent;
+import com.example.spotifyscrobble.catalog.ArtistEntity;
+import com.example.spotifyscrobble.catalog.TrackEntity;
+import com.example.spotifyscrobble.catalog.repository.ArtistRepository;
+import com.example.spotifyscrobble.catalog.repository.TrackRepository;
 import com.example.spotifyscrobble.listening.TrackListenedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;

@@ -1,11 +1,10 @@
-package com.example.spotifyscrobble.listening;
+package com.example.spotifyscrobble.listening.entities;
 
 import com.example.spotifyscrobble.users.UserEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import org.hibernate.annotations.ColumnDefault;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.Instant;

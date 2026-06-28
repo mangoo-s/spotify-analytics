@@ -1,4 +1,4 @@
-package com.example.spotifyscrobble.statistics;
+package com.example.spotifyscrobble.statistics.entities;
 
 import com.example.spotifyscrobble.catalog.ArtistEntity;
 import com.example.spotifyscrobble.users.UserEntity;

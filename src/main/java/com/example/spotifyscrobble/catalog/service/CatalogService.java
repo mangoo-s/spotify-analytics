@@ -1,9 +1,14 @@
-package com.example.spotifyscrobble.catalog;
+package com.example.spotifyscrobble.catalog.service;
 
-import com.example.spotifyscrobble.catalog.Dto.ArtistCreatedRequest;
-import com.example.spotifyscrobble.catalog.Dto.ArtistCreatedResponse;
-import com.example.spotifyscrobble.catalog.Dto.TrackCreatedRequest;
-import com.example.spotifyscrobble.catalog.Dto.TrackCreatedResponse;
+import com.example.spotifyscrobble.catalog.ArtistCreatedEvent;
+import com.example.spotifyscrobble.catalog.ArtistEntity;
+import com.example.spotifyscrobble.catalog.TrackEntity;
+import com.example.spotifyscrobble.catalog.internalDto.ArtistCreatedRequest;
+import com.example.spotifyscrobble.catalog.internalDto.ArtistCreatedResponse;
+import com.example.spotifyscrobble.catalog.internalDto.TrackCreatedRequest;
+import com.example.spotifyscrobble.catalog.internalDto.TrackCreatedResponse;
+import com.example.spotifyscrobble.catalog.repository.ArtistRepository;
+import com.example.spotifyscrobble.catalog.repository.TrackRepository;
 import com.example.spotifyscrobble.shared.ArtistAlreadyExists;
 import com.example.spotifyscrobble.shared.ArtistNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -23,11 +28,6 @@ public class CatalogService {
         this.events = events;
     }
 
-    public CatalogEntriesExistResponse getCatalogEntries(Long spotifyTrackId, Long spotifyArtistId){
-        ArtistEntity artist = artistRepo.findBySpotifyId(spotifyArtistId).get();
-        TrackEntity track = trackRepo.findBySpotifyId(spotifyTrackId).get();
-        return new CatalogEntriesExistResponse(artist, track);
-    }
 
     public ArtistCreatedResponse createArtist(ArtistCreatedRequest artistCreatedRequest) {
         if(artistRepo.existsBySpotifyId(artistCreatedRequest.spotifyId())) { throw new ArtistAlreadyExists("This artist already exists."); }

@@ -1,4 +1,4 @@
-package com.example.spotifyscrobble.listening;
+package com.example.spotifyscrobble.listening.responses;
 
 import java.time.Instant;
 

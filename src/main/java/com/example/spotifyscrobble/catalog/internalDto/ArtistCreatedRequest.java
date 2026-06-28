@@ -1,4 +1,4 @@
-package com.example.spotifyscrobble.catalog.Dto;
+package com.example.spotifyscrobble.catalog.internalDto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

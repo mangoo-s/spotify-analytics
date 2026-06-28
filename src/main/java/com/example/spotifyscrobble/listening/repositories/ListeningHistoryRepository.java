@@ -1,5 +1,6 @@
-package com.example.spotifyscrobble.listening;
+package com.example.spotifyscrobble.listening.repositories;
 
+import com.example.spotifyscrobble.listening.entities.ListenEventEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
