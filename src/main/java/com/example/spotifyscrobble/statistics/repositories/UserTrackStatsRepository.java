@@ -2,6 +2,8 @@ package com.example.spotifyscrobble.statistics.repositories;
 
 import com.example.spotifyscrobble.statistics.entities.UserTrackStatsEntity;
 import com.example.spotifyscrobble.statistics.entities.UserTrackStatsId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,4 +17,6 @@ public interface UserTrackStatsRepository extends JpaRepository<UserTrackStatsEn
     AND arts.id.userId = :#{#id.userId}
     """)
     int incrementTotalPlays(UserTrackStatsId id);
+
+    Page<UserTrackStatsEntity> findAllById_UserId(Long userId, Pageable p);
 }

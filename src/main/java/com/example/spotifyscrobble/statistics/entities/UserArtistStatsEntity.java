@@ -12,14 +12,17 @@ public class UserArtistStatsEntity {
     @EmbeddedId
     private UserArtistStatsId id;
 
+    private String artistName;
+
     private long playCount;
     private Instant lastPlayed;
 
     protected UserArtistStatsEntity() {}
 
-    public UserArtistStatsEntity(UserArtistStatsId id){
+    public UserArtistStatsEntity(UserArtistStatsId id, String artistName){
         this.id = id;
         this.playCount = 1L;
         this.lastPlayed = Instant.now();
+        this.artistName = artistName;
     }
 }
