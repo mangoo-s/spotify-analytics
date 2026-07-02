@@ -2,6 +2,7 @@ package com.example.spotifyscrobble.statistics.services;
 
 import com.example.spotifyscrobble.catalog.*;
 import com.example.spotifyscrobble.shared.CustomPageResponse;
+import com.example.spotifyscrobble.statistics.UserTopArtistResponse;
 import com.example.spotifyscrobble.statistics.UserTopTracksResponse;
 import com.example.spotifyscrobble.statistics.entities.*;
 import com.example.spotifyscrobble.statistics.repositories.*;
@@ -35,11 +36,11 @@ public class StatisticsService {
     }
 
     public void handleTrackListenedEvent(CatalogEntriesResolvedEvent event){
-        initializeNewArtistStats(event.artistId());
-        initializeNewTrackStats(event.trackId());
+        initializeNewArtistStats(event.artistId(), event.artistName());
+        initializeNewTrackStats(event.trackId(), event.trackName());
 
         initializeNewUserArtistStatsOrIncrement(event.userId(), event.artistId(), event.artistName());
-        initializeNewUserTrackStatsOrIncrement(event.userId(), event.trackId(), event.artistName(), event.trackName());
+        initializeNewUserTrackStatsOrIncrement(event.userId(), event.trackId(), event.trackName(), event.artistName());
 
         if(!isExistingArtistListener(event.artistId(), event.userId())){
             artistStatsRepo.incrementListeners(event.artistId());
@@ -60,15 +61,25 @@ public class StatisticsService {
         return new CustomPageResponse<>(tracks);
     }
 
-    public void initializeNewArtistStats(Long artistId){
+    public CustomPageResponse<UserTopArtistResponse> getUsersTopArtists(Long userId, int page, int size){
+        Pageable p = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "playCount"));
+        Page<UserTopArtistResponse> artists = userArtistStatsRepo.findAllById_UserId(userId, p)
+                .map(entity -> new UserTopArtistResponse(
+                        entity.getArtistName(),
+                        entity.getPlayCount()
+                ));
+        return new CustomPageResponse<>(artists);
+    }
+
+    public void initializeNewArtistStats(Long artistId, String name){
         if (!artistStatsRepo.existsById(artistId)) {
-            artistStatsRepo.save(new ArtistStatsEntity(artistId));
+            artistStatsRepo.save(new ArtistStatsEntity(artistId, name));
         }
     }
 
-    public void initializeNewTrackStats(Long trackId){
+    public void initializeNewTrackStats(Long trackId, String title){
         if (!trackStatsRepo.existsById(trackId)) {
-            trackStatsRepo.save(new TrackStatsEntity(trackId));
+            trackStatsRepo.save(new TrackStatsEntity(trackId, title));
         }
     }
 
