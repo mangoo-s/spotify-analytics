@@ -3,11 +3,13 @@ package com.example.spotifyscrobble.statistics.entities;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import lombok.Getter;
 
 import java.time.Instant;
 
 @Entity
 @Table(name = "user_artist_stats")
+@Getter
 public class UserArtistStatsEntity {
     @EmbeddedId
     private UserArtistStatsId id;
