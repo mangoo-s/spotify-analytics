@@ -17,9 +17,8 @@ public class ListenEventEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long eventId;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
+    @NotNull(message = "UserId cannot be null")
+    private Long userId;
 
     @NotBlank(message = "Artist name cannot be null")
     private String artistName;
@@ -41,8 +40,8 @@ public class ListenEventEntity {
 
     protected ListenEventEntity() { }
 
-    public ListenEventEntity(UserEntity user, String artistName, String trackName, Long spotifyTrackId, Long spotifyArtistId, Instant playedAt) {
-        this.user = user;
+    public ListenEventEntity(Long userId, String artistName, String trackName, Long spotifyTrackId, Long spotifyArtistId, Instant playedAt) {
+        this.userId = userId;
         this.trackName = trackName;
         this.artistName = artistName;
         this.spotifyTrackId = spotifyTrackId;

@@ -5,7 +5,6 @@ import com.example.spotifyscrobble.listening.entities.ListenEventEntity;
 import com.example.spotifyscrobble.listening.responses.ListeningHistoryResponse;
 import com.example.spotifyscrobble.listening.repositories.ListeningHistoryRepository;
 import com.example.spotifyscrobble.shared.CustomPageResponse;
-import com.example.spotifyscrobble.users.entity.UserEntity;
 import com.example.spotifyscrobble.users.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -19,18 +18,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class ListeningService {
     private final ApplicationEventPublisher events;
     private final ListeningHistoryRepository listeningHistoryRepo;
-    private final UserRepository userRepo;
 
-    public ListeningService(ApplicationEventPublisher events, ListeningHistoryRepository listeningHistoryRepo, UserRepository userRepo){
+    public ListeningService(ApplicationEventPublisher events, ListeningHistoryRepository listeningHistoryRepo){
         this.events = events;
         this.listeningHistoryRepo = listeningHistoryRepo;
-        this.userRepo = userRepo;
     }
 
     @Transactional
     public void processTrackListen(TrackListenedEvent event) {
-        UserEntity user = userRepo.findById(event.userId()).orElseThrow(() -> new IllegalArgumentException("this user does not exist"));
-        ListenEventEntity entity = new ListenEventEntity(user, event.artistName(),event.trackName(), event.spotifyTrackId(), event.spotifyArtistId(), event.playedAt());
+        ListenEventEntity entity = new ListenEventEntity(event.userId(), event.artistName(),event.trackName(), event.spotifyTrackId(), event.spotifyArtistId(), event.playedAt());
         listeningHistoryRepo.save(entity);
 
         log.info("User {}'s track event is being published.", event.userId());
