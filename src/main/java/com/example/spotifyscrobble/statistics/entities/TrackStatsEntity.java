@@ -1,9 +1,11 @@
 package com.example.spotifyscrobble.statistics.entities;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 
 @Entity
 @Table(name = "track_stats")
+@Getter
 public class TrackStatsEntity {
     @Id
     private Long trackId;

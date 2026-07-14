@@ -1,11 +1,13 @@
 package com.example.spotifyscrobble.statistics.entities;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 
 @Entity
 @Table(name = "artist_listeners", uniqueConstraints = {@UniqueConstraint(
         columnNames = {"artist_id", "user_id"}
 )})
+@Getter
 public class ArtistListenerEntity {
     @Id
     @GeneratedValue
