@@ -11,11 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class UserStatsUpdater {
-    private final UserTrackStatsRepository userTrackStatsRepository;
+    private final UserTrackStatsRepository userTrackStatsRepo;
     private final UserArtistStatsRepository userArtistStatsRepo;
 
-    public UserStatsUpdater(UserTrackStatsRepository userTrackStatsRepository, UserArtistStatsRepository userArtistStatsRepo) {
-        this.userTrackStatsRepository = userTrackStatsRepository;
+    public UserStatsUpdater(UserTrackStatsRepository userTrackStatsRepo, UserArtistStatsRepository userArtistStatsRepo) {
+        this.userTrackStatsRepo = userTrackStatsRepo;
         this.userArtistStatsRepo = userArtistStatsRepo;
     }
 
@@ -30,9 +30,9 @@ public class UserStatsUpdater {
     @Transactional
     public void recordTrackPlay(Long userId, Long trackId, String trackName, String artistName){
         UserTrackStatsId id = new UserTrackStatsId(userId, trackId);
-        userTrackStatsRepository.findById(id).ifPresentOrElse(
-                stats -> userTrackStatsRepository.incrementTotalPlays(id),
-                () -> userTrackStatsRepository.save(new UserTrackStatsEntity(id, artistName, trackName))
+        userTrackStatsRepo.findById(id).ifPresentOrElse(
+                stats -> userTrackStatsRepo.incrementTotalPlays(id),
+                () -> userTrackStatsRepo.save(new UserTrackStatsEntity(id, artistName, trackName))
         );
     }
 
