@@ -8,6 +8,7 @@ import lombok.Getter;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Getter
 @Entity
@@ -18,7 +19,10 @@ public class ListenEventEntity {
     private Long eventId;
 
     @NotNull(message = "UserId cannot be null")
-    private Long userId;
+    private UUID userId;
+
+    @NotBlank(message = "Username can not be null")
+    private String username;
 
     @NotBlank(message = "Artist name cannot be null")
     private String artistName;
@@ -40,8 +44,9 @@ public class ListenEventEntity {
 
     protected ListenEventEntity() { }
 
-    public ListenEventEntity(Long userId, String artistName, String trackName, Long spotifyTrackId, Long spotifyArtistId, Instant playedAt) {
+    public ListenEventEntity(UUID userId, String username, String artistName, String trackName, Long spotifyTrackId, Long spotifyArtistId, Instant playedAt) {
         this.userId = userId;
+        this.username = username;
         this.trackName = trackName;
         this.artistName = artistName;
         this.spotifyTrackId = spotifyTrackId;

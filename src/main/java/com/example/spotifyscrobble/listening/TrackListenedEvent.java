@@ -1,9 +1,11 @@
 package com.example.spotifyscrobble.listening;
 
 import java.time.Instant;
+import java.util.UUID;
 
 public record TrackListenedEvent(
-        Long userId,
+        UUID userId,
+        String username,
         Long spotifyTrackId,
         Long spotifyArtistId,
         Instant playedAt,

@@ -6,7 +6,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.UUID;
+
 @Repository
-public interface ListeningHistoryRepository extends JpaRepository<ListenEventEntity, Long> {
-    Page<ListenEventEntity> findAllByUser_UserId(Long userId, Pageable p);
+public interface ListeningHistoryRepository extends JpaRepository<ListenEventEntity, UUID> {
+    Page<ListenEventEntity> findAllByUsername(String username, Pageable p);
 }

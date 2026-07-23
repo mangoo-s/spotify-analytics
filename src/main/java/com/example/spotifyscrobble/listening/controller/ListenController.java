@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @RestController
 public class ListenController {
@@ -21,16 +22,17 @@ public class ListenController {
         this.listeningService = listeningService;
     }
 
-    @GetMapping("/users/{id}/history")
-    public ResponseEntity<CustomPageResponse<ListeningHistoryResponse>> getListeningHistory(@PathVariable Long id, Pageable p){
-        CustomPageResponse<ListeningHistoryResponse> response = listeningService.getUserListeningHistory(id, p); //N+1 query need to fix
+    @GetMapping("/users/{username}/history")
+    public ResponseEntity<CustomPageResponse<ListeningHistoryResponse>> getListeningHistory(@PathVariable String username, Pageable p){
+        CustomPageResponse<ListeningHistoryResponse> response = listeningService.getUserListeningHistory(username, p);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/test")
     public ResponseEntity<?> test() {
         TrackListenedEvent tst = new TrackListenedEvent(
-                1L,
+                UUID.fromString("d65b26f8-94ef-498e-b617-b51e17ce56e5"),
+                "test",
                 2L,
                 1L,
                 Instant.now(),

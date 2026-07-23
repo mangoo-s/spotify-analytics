@@ -13,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 @Slf4j
 public class ListeningService {
@@ -33,8 +35,8 @@ public class ListeningService {
         events.publishEvent(event);
     }
 
-    public CustomPageResponse<ListeningHistoryResponse> getUserListeningHistory(Long userId, Pageable p){
-        Page<ListeningHistoryResponse> result = listeningHistoryRepo.findAllByUser_UserId(userId, p)
+    public CustomPageResponse<ListeningHistoryResponse> getUserListeningHistory(String username, Pageable p){
+        Page<ListeningHistoryResponse> result = listeningHistoryRepo.findAllByUsername(username, p)
                 .map(entity -> new ListeningHistoryResponse(
                         entity.getArtistName(),
                         entity.getTrackName(),
