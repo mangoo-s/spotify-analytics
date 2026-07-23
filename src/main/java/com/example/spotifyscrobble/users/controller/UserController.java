@@ -1,25 +1,53 @@
 package com.example.spotifyscrobble.users.controller;
 
+import com.example.spotifyscrobble.users.components.CreateProfile;
 import com.example.spotifyscrobble.users.dto.UserRegisterRequest;
+import com.example.spotifyscrobble.users.dto.UsernameRequest;
+import com.example.spotifyscrobble.users.entity.UserEntity;
+import com.example.spotifyscrobble.users.repository.UserRepository;
 import com.example.spotifyscrobble.users.service.UserService;
 import jakarta.validation.Valid;
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 public class UserController {
     private final UserService userService;
+    private final UserRepository userRepo;
+    private final CreateProfile createProfile;
 
-    public UserController(UserService userService){
+    public UserController(UserService userService, UserRepository userRepo, CreateProfile createProfile){
         this.userService = userService;
+        this.userRepo = userRepo;
+        this.createProfile = createProfile;
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody @Valid UserRegisterRequest userRegisterRequest){
-        userService.createUser(userRegisterRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body("New user created with username: "+userRegisterRequest.getUsername());
+    @PutMapping("/profile/username")
+    public ResponseEntity<?> createUsername(@AuthenticationPrincipal Jwt jwt, @RequestBody @Valid UsernameRequest usernameRequest){
+        UserEntity user = createProfile.getOrCreateProfile(jwt);
+
+        if(userRepo.existsByUsername(usernameRequest.username())){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already taken");
+        }
+
+        user.setUsername(usernameRequest.username());
+        userRepo.save(user);
+        return ResponseEntity.status(HttpStatus.OK).body("Username successfully created.");
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<Map<String, Object>> me(@AuthenticationPrincipal Jwt jwt){
+        Map<String, Object> test = Map.of(
+                "userId", jwt.getSubject(),
+                "email", jwt.getClaimAsString("email")
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(test);
     }
 }

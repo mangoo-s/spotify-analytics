@@ -16,14 +16,4 @@ public class UserService implements UsersApi{
         this.userRepo = userRepo;
     }
 
-    public void createUser(UserRegisterRequest userRegisterRequest){
-        try{
-            UserEntity entity = new UserEntity(userRegisterRequest.getUsername());
-            userRepo.save(entity);
-        }catch(DataIntegrityViolationException ex){
-            throw new UserAlreadyExistsException("This user already exists.");
-        }
-    }
-
-
 }
