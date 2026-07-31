@@ -1,7 +1,9 @@
 package com.example.spotifyscrobble.catalog;
 
+import java.util.UUID;
+
 public record CatalogEntriesResolvedEvent(
-        Long userId,
+        UUID userId,
         Long artistId,
         Long trackId,
         String trackName,
