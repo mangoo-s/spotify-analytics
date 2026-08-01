@@ -12,6 +12,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.util.UUID;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -30,9 +32,9 @@ public class ArtistStatsUpdaterTest {
     @Test
     void recordListen_DoesNotCreateArtistWhenArtistAlreadyExists(){
         when(artistStatsRepo.existsById(1L)).thenReturn(true);
-        when(artistListenerRepo.existsByArtistIdAndUserId(1L, 1L)).thenReturn(true);
+        when(artistListenerRepo.existsByArtistIdAndUserId(1L, UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"))).thenReturn(true);
 
-        artistStatsUpdater.recordListen(1L, "Radiohead", 1L);
+        artistStatsUpdater.recordListen(1L, "Radiohead", UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"));
 
         verify(artistListenerRepo, never()).save(any());
     }
@@ -40,9 +42,9 @@ public class ArtistStatsUpdaterTest {
     @Test
     void recordListen_CreatesNewArtistWhenArtistDoesNotAlreadyExist(){
         when(artistStatsRepo.existsById(1L)).thenReturn(false);
-        when(artistListenerRepo.existsByArtistIdAndUserId(1L, 100L)).thenReturn(true);
+        when(artistListenerRepo.existsByArtistIdAndUserId(1L, UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"))).thenReturn(true);
 
-        artistStatsUpdater.recordListen(1L, "Radiohead", 100L);
+        artistStatsUpdater.recordListen(1L, "Radiohead", UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"));
         ArgumentCaptor<ArtistStatsEntity> captor = ArgumentCaptor.forClass(ArtistStatsEntity.class);
         verify(artistStatsRepo).save(captor.capture());
         assertThat(captor.getValue().getArtistId()).isEqualTo(1L);
@@ -52,23 +54,23 @@ public class ArtistStatsUpdaterTest {
     @Test
     void recordListen_IncrementsListenersForNewListener(){
         when(artistStatsRepo.existsById(1L)).thenReturn(true);
-        when(artistListenerRepo.existsByArtistIdAndUserId(1L, 100L)).thenReturn(false);
+        when(artistListenerRepo.existsByArtistIdAndUserId(1L, UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"))).thenReturn(false);
         ArgumentCaptor<ArtistListenerEntity> captor = ArgumentCaptor.forClass(ArtistListenerEntity.class);
 
-        artistStatsUpdater.recordListen(1L, "Radiohead", 100L);
+        artistStatsUpdater.recordListen(1L, "Radiohead", UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"));
 
         verify(artistListenerRepo).save(captor.capture());
         assertThat(captor.getValue().getArtistId()).isEqualTo(1L);
-        assertThat(captor.getValue().getUserId()).isEqualTo(100L);
+        assertThat(captor.getValue().getUserId()).isEqualTo(UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"));
         verify(artistStatsRepo).incrementListeners(1L);
     }
 
     @Test
     void recordListen_DoesNotIncrementListenersForReturningListener(){
         when(artistStatsRepo.existsById(1L)).thenReturn(true);
-        when(artistListenerRepo.existsByArtistIdAndUserId(1L, 100L)).thenReturn(true);
+        when(artistListenerRepo.existsByArtistIdAndUserId(1L, UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"))).thenReturn(true);
 
-        artistStatsUpdater.recordListen(1L, "Radiohead", 100L);
+        artistStatsUpdater.recordListen(1L, "Radiohead", UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"));
 
         verify(artistListenerRepo, never()).save(any());
         verify(artistStatsRepo, never()).incrementListeners(anyLong());
@@ -77,10 +79,10 @@ public class ArtistStatsUpdaterTest {
     @Test
     void recordListen_DoesNotIncrementListenersWhenRaceConditionOccursOnSave(){
         when(artistStatsRepo.existsById(1L)).thenReturn(true);
-        when(artistListenerRepo.existsByArtistIdAndUserId(1L, 100L)).thenReturn(false);
+        when(artistListenerRepo.existsByArtistIdAndUserId(1L, UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"))).thenReturn(false);
         when(artistListenerRepo.save(any())).thenThrow(new DataIntegrityViolationException("Duplicate"));
 
-        artistStatsUpdater.recordListen(1L, "Radiohead", 100L);
+        artistStatsUpdater.recordListen(1L, "Radiohead", UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"));
 
         verify(artistStatsRepo, never()).incrementListeners(anyLong());
     }
@@ -88,9 +90,9 @@ public class ArtistStatsUpdaterTest {
     @Test
     void recordListen_AlwaysIncrementsTotalPlaysRegardlessOfIfStatements(){
         when(artistStatsRepo.existsById(1L)).thenReturn(true);
-        when(artistListenerRepo.existsByArtistIdAndUserId(1L, 100L)).thenReturn(true);
+        when(artistListenerRepo.existsByArtistIdAndUserId(1L, UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"))).thenReturn(true);
 
-        artistStatsUpdater.recordListen(1L, "Radiohead", 100L);
+        artistStatsUpdater.recordListen(1L, "Radiohead", UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"));
         verify(artistStatsRepo).incrementTotalPlays(1L);
     }
 }
