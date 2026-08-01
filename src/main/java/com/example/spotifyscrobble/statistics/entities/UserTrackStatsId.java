@@ -6,7 +6,7 @@ import java.io.Serializable;
 
 @Embeddable
 public record UserTrackStatsId(
-        Long userId,
+        java.util.UUID userId,
         Long trackId
 ) implements Serializable {
 }
