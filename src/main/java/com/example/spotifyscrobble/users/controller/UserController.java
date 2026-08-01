@@ -11,8 +11,14 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestClient;
+import tools.jackson.databind.JsonNode;
 
 import java.util.Map;
 
@@ -21,11 +27,13 @@ public class UserController {
     private final UserService userService;
     private final UserRepository userRepo;
     private final CreateProfile createProfile;
+    private final RestClient restClient;
 
-    public UserController(UserService userService, UserRepository userRepo, CreateProfile createProfile){
+    public UserController(UserService userService, UserRepository userRepo, CreateProfile createProfile, RestClient restClient){
         this.userService = userService;
         this.userRepo = userRepo;
         this.createProfile = createProfile;
+        this.restClient = restClient;
     }
 
     @PutMapping("/profile/username")
@@ -49,5 +57,17 @@ public class UserController {
         );
 
         return ResponseEntity.status(HttpStatus.OK).body(test);
+    }
+
+    @GetMapping("/test/spotify")
+    public String testSpotify(@RegisteredOAuth2AuthorizedClient("spotifyscrobble")OAuth2AuthorizedClient authorizedClient){
+        System.out.println(authorizedClient.getAccessToken());
+        String hi = restClient.get()
+                .uri("https://api.spotify.com/v1/me/player/currently-playing")
+                .headers(h -> h.setBearerAuth(authorizedClient.getAccessToken().getTokenValue()))
+                .retrieve()
+                .body(String.class);
+        System.out.println(hi);
+        return hi;
     }
 }
