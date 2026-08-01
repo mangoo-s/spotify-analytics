@@ -3,6 +3,8 @@ package com.example.spotifyscrobble.statistics.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "artist_listeners", uniqueConstraints = {@UniqueConstraint(
         columnNames = {"artist_id", "user_id"}
@@ -13,12 +15,12 @@ public class ArtistListenerEntity {
     @GeneratedValue
     private Long id;
 
-    private Long userId;
+    private UUID userId;
     private Long artistId;
 
     protected ArtistListenerEntity() {}
 
-    public ArtistListenerEntity(Long artistId, Long userId){
+    public ArtistListenerEntity(Long artistId, UUID userId){
         this.artistId = artistId;
         this.userId = userId;
     }

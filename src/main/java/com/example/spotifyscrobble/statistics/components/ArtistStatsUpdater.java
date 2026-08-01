@@ -8,6 +8,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Component
 public class ArtistStatsUpdater {
     private final ArtistStatsRepository artistStatsRepo;
@@ -19,7 +21,7 @@ public class ArtistStatsUpdater {
     }
 
     @Transactional
-    public void recordListen(Long artistId, String artistName, Long userId){
+    public void recordListen(Long artistId, String artistName, UUID userId){
         if(!artistStatsRepo.existsById(artistId)){
             artistStatsRepo.save(new ArtistStatsEntity(artistId, artistName));
         }
@@ -30,7 +32,7 @@ public class ArtistStatsUpdater {
         artistStatsRepo.incrementTotalPlays(artistId);
     }
 
-    private boolean isExistingListener(Long userId, Long artistId){
+    private boolean isExistingListener(UUID userId, Long artistId){
         try {
             if(!artistListenerRepo.existsByArtistIdAndUserId(artistId, userId)){
                 artistListenerRepo.save(new ArtistListenerEntity(artistId, userId));

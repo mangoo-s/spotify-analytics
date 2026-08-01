@@ -5,7 +5,7 @@ import java.io.Serializable;
 
 @Embeddable
 public record UserArtistStatsId(
-        Long userId,
+        java.util.UUID userId,
         Long artistId
 ) implements Serializable {
 }

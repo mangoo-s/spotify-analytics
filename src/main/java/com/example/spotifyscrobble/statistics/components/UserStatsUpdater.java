@@ -9,6 +9,8 @@ import com.example.spotifyscrobble.statistics.repositories.UserTrackStatsReposit
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Component
 public class UserStatsUpdater {
     private final UserTrackStatsRepository userTrackStatsRepo;
@@ -20,7 +22,7 @@ public class UserStatsUpdater {
     }
 
     @Transactional
-    public void recordArtistPlay(Long userId, Long artistId, String artistName){
+    public void recordArtistPlay(UUID userId, Long artistId, String artistName){
         UserArtistStatsId id = new UserArtistStatsId(userId, artistId);
         userArtistStatsRepo.findById(id).ifPresentOrElse(
                 stats -> userArtistStatsRepo.incrementTotalPlays(id),
@@ -28,7 +30,7 @@ public class UserStatsUpdater {
         );
     }
     @Transactional
-    public void recordTrackPlay(Long userId, Long trackId, String trackName, String artistName){
+    public void recordTrackPlay(UUID userId, Long trackId, String trackName, String artistName){
         UserTrackStatsId id = new UserTrackStatsId(userId, trackId);
         userTrackStatsRepo.findById(id).ifPresentOrElse(
                 stats -> userTrackStatsRepo.incrementTotalPlays(id),

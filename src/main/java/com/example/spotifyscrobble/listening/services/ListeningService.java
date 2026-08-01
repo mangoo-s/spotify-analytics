@@ -28,7 +28,7 @@ public class ListeningService {
 
     @Transactional
     public void processTrackListen(TrackListenedEvent event) {
-        ListenEventEntity entity = new ListenEventEntity(event.userId(), event.artistName(),event.trackName(), event.spotifyTrackId(), event.spotifyArtistId(), event.playedAt());
+        ListenEventEntity entity = new ListenEventEntity(event.userId(), event.username(), event.artistName(),event.trackName(), event.spotifyTrackId(), event.spotifyArtistId(), event.playedAt());
         listeningHistoryRepo.save(entity);
 
         log.info("User {}'s track event is being published.", event.userId());
