@@ -19,7 +19,7 @@ public class CreateProfile {
     public UserEntity getOrCreateProfile(Jwt jwt){
         UUID userId = UUID.fromString(jwt.getSubject());
         return userRepo.findById(userId).orElseGet(
-                () -> userRepo.save(new UserEntity(userId, "test", jwt.getClaimAsString("email")))
+                () -> userRepo.save(new UserEntity(userId, jwt.getClaimAsString("email")))
         );
     }
 }
