@@ -1,13 +1,18 @@
 package com.example.spotifyscrobble.users.controller;
 
 import com.example.spotifyscrobble.users.components.CreateProfile;
+import com.example.spotifyscrobble.users.dto.SpotifyAccessTokenRequest;
+import com.example.spotifyscrobble.users.dto.SpotifyAccessTokenResponse;
 import com.example.spotifyscrobble.users.dto.UserRegisterRequest;
 import com.example.spotifyscrobble.users.dto.UsernameRequest;
 import com.example.spotifyscrobble.users.entity.UserEntity;
 import com.example.spotifyscrobble.users.repository.UserRepository;
+import com.example.spotifyscrobble.users.service.SpotifyService;
 import com.example.spotifyscrobble.users.service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,10 +21,16 @@ import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2Aut
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 import tools.jackson.databind.JsonNode;
 
+import java.io.IOException;
+import java.util.Base64;
 import java.util.Map;
 
 @RestController
@@ -27,13 +38,21 @@ public class UserController {
     private final UserService userService;
     private final UserRepository userRepo;
     private final CreateProfile createProfile;
-    private final RestClient restClient;
+    private final JwtDecoder jwtDecoder;
+    private final SpotifyService spotifyService;
 
-    public UserController(UserService userService, UserRepository userRepo, CreateProfile createProfile, RestClient restClient){
+    @Value("${SPOTIFY_CLIENT_ID}")
+    private String clientId;
+
+    @Value("${SPOTIFY_CLIENT_SECRET}")
+    private String clientSecret;
+
+    public UserController(UserService userService, UserRepository userRepo, CreateProfile createProfile, JwtDecoder jwtDecoder, SpotifyService spotifyService){
         this.userService = userService;
         this.userRepo = userRepo;
         this.createProfile = createProfile;
-        this.restClient = restClient;
+        this.jwtDecoder = jwtDecoder;
+        this.spotifyService = spotifyService;
     }
 
     @PutMapping("/profile/username")
@@ -59,15 +78,27 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(test);
     }
 
-    @GetMapping("/test/spotify")
-    public String testSpotify(@RegisteredOAuth2AuthorizedClient("spotifyscrobble")OAuth2AuthorizedClient authorizedClient){
-        System.out.println(authorizedClient.getAccessToken());
-        String hi = restClient.get()
-                .uri("https://api.spotify.com/v1/me/player/currently-playing")
-                .headers(h -> h.setBearerAuth(authorizedClient.getAccessToken().getTokenValue()))
-                .retrieve()
-                .body(String.class);
-        System.out.println(hi);
-        return hi;
+    @GetMapping("/spotify/connect")
+    public void connectSpotify(@RequestParam("token") String token, HttpServletResponse response) throws IOException {
+        Jwt jwt = jwtDecoder.decode(token);
+        String state = jwt.getSubject();
+
+        String authorizeUri = UriComponentsBuilder
+                    .fromUriString("https://accounts.spotify.com/authorize")
+                    .queryParam("client_id", clientId)
+                    .queryParam("scope", "user-read-currently-playing,user-read-recently-played")
+                    .queryParam("redirect_uri", "http://127.0.0.1:8080/callback")
+                    .queryParam("state", state)
+                    .queryParam("response_type", "code")
+                    .build()
+                    .toUriString();
+
+        response.sendRedirect(authorizeUri);
+    }
+
+    @GetMapping("/callback")
+    public ResponseEntity<?> spotifyCallback(@RequestParam("code") String code, @RequestParam("state") String state){
+        spotifyService.spotifyCallback(code, state);
+        return ResponseEntity.status(HttpStatus.OK).body("Spotify connected");
     }
 }
