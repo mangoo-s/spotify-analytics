@@ -39,7 +39,6 @@ public class SecurityConfig {
                         .requestMatchers("/me").authenticated()
                         .anyRequest().permitAll()
                 )
-                .oauth2Client(Customizer.withDefaults())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(Customizer.withDefaults())
                 )
