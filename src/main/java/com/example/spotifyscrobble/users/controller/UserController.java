@@ -1,11 +1,11 @@
 package com.example.spotifyscrobble.users.controller;
 
 import com.example.spotifyscrobble.users.components.CreateProfile;
-import com.example.spotifyscrobble.users.dto.SpotifyAccessTokenRequest;
-import com.example.spotifyscrobble.users.dto.SpotifyAccessTokenResponse;
-import com.example.spotifyscrobble.users.dto.UserRegisterRequest;
-import com.example.spotifyscrobble.users.dto.UsernameRequest;
+import com.example.spotifyscrobble.users.dto.*;
+import com.example.spotifyscrobble.users.entity.SpotifyConnectionEntity;
 import com.example.spotifyscrobble.users.entity.UserEntity;
+import com.example.spotifyscrobble.users.other.CurrentlyPlayingResult;
+import com.example.spotifyscrobble.users.repository.SpotifyConnectionRepository;
 import com.example.spotifyscrobble.users.repository.UserRepository;
 import com.example.spotifyscrobble.users.service.SpotifyService;
 import com.example.spotifyscrobble.users.service.UserService;
@@ -32,6 +32,7 @@ import tools.jackson.databind.JsonNode;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 public class UserController {
@@ -40,6 +41,7 @@ public class UserController {
     private final CreateProfile createProfile;
     private final JwtDecoder jwtDecoder;
     private final SpotifyService spotifyService;
+    private final SpotifyConnectionRepository spotifyConnectionRepo;
 
     @Value("${SPOTIFY_CLIENT_ID}")
     private String clientId;
@@ -47,12 +49,13 @@ public class UserController {
     @Value("${SPOTIFY_CLIENT_SECRET}")
     private String clientSecret;
 
-    public UserController(UserService userService, UserRepository userRepo, CreateProfile createProfile, JwtDecoder jwtDecoder, SpotifyService spotifyService){
+    public UserController(UserService userService, UserRepository userRepo, CreateProfile createProfile, JwtDecoder jwtDecoder, SpotifyService spotifyService, SpotifyConnectionRepository spotifyConnectionRepo){
         this.userService = userService;
         this.userRepo = userRepo;
         this.createProfile = createProfile;
         this.jwtDecoder = jwtDecoder;
         this.spotifyService = spotifyService;
+        this.spotifyConnectionRepo = spotifyConnectionRepo;
     }
 
     @PutMapping("/profile/username")
@@ -100,5 +103,12 @@ public class UserController {
     public ResponseEntity<?> spotifyCallback(@RequestParam("code") String code, @RequestParam("state") String state){
         spotifyService.spotifyCallback(code, state);
         return ResponseEntity.status(HttpStatus.OK).body("Spotify connected");
+    }
+
+    @GetMapping("/current")
+    public CurrentlyPlayingResult playingTrack(@AuthenticationPrincipal Jwt jwt){
+        SpotifyConnectionEntity user = spotifyConnectionRepo.findById(UUID.fromString(jwt.getSubject())).orElseThrow(() -> new RuntimeException("yo"));
+        return spotifyService.getCurrentlyPlayingTrack(user);
+
     }
 }
