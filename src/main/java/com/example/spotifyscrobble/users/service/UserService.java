@@ -2,13 +2,11 @@ package com.example.spotifyscrobble.users.service;
 
 import com.example.spotifyscrobble.users.UsersApi;
 import com.example.spotifyscrobble.users.components.CreateProfile;
-import com.example.spotifyscrobble.users.dto.UserRegisterRequest;
+import com.example.spotifyscrobble.users.GetUserByIdResponse;
 import com.example.spotifyscrobble.users.repository.UserRepository;
 import com.example.spotifyscrobble.users.entity.UserEntity;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
-import com.example.spotifyscrobble.shared.UserAlreadyExistsException;
 
 @Service
 public class UserService implements UsersApi{
@@ -25,5 +23,10 @@ public class UserService implements UsersApi{
     }
 
 
+    @Override
+    public GetUserByIdResponse getUserByUsername(String username) {
+        UserEntity entity = userRepo.findByUsername(username).orElseThrow(() -> new RuntimeException("hi")); //Need to create its own exception
+        return new GetUserByIdResponse(entity.getUserId(), entity.getCreatedAt());
+    }
 
 }
