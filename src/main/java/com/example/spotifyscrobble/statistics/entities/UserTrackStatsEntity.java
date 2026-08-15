@@ -2,6 +2,7 @@ package com.example.spotifyscrobble.statistics.entities;
 
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 
@@ -12,7 +13,7 @@ import java.time.Instant;
 @Getter
 public class UserTrackStatsEntity {
 
-    @EmbeddedId
+    @Id
     private UserTrackStatsId id;
 
     private String artistName;

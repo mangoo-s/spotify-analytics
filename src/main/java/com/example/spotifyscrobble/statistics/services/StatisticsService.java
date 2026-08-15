@@ -8,6 +8,7 @@ import com.example.spotifyscrobble.statistics.components.ArtistStatsUpdater;
 import com.example.spotifyscrobble.statistics.components.TrackStatsUpdater;
 import com.example.spotifyscrobble.statistics.components.UserStatsUpdater;
 import com.example.spotifyscrobble.statistics.repositories.*;
+import com.example.spotifyscrobble.users.GetUserByIdResponse;
 import com.example.spotifyscrobble.users.UsersApi;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -15,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 public class StatisticsService {
@@ -47,9 +50,10 @@ public class StatisticsService {
         userStatsUpdater.recordArtistPlay(event.userId(), event.artistId(), event.artistName());
     }
 
-    public CustomPageResponse<UserTopTracksResponse> getUsersTopTracks(Long userId, int page, int size){
+    public CustomPageResponse<UserTopTracksResponse> getUsersTopTracks(String username, int page, int size){
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "playCount"));
-        Page<UserTopTracksResponse> tracks = userTrackStatsRepository.findAllById_UserId(userId, pageable)
+        GetUserByIdResponse response = usersApi.getUserByUsername(username);
+        Page<UserTopTracksResponse> tracks = userTrackStatsRepository.findAllById_UserId(response.id(), pageable)
                 .map(entity -> new UserTopTracksResponse(
                         entity.getTrackName(),
                         entity.getArtistName(),
@@ -58,9 +62,10 @@ public class StatisticsService {
         return new CustomPageResponse<>(tracks);
     }
 
-    public CustomPageResponse<UserTopArtistResponse> getUsersTopArtists(Long userId, int page, int size){
+    public CustomPageResponse<UserTopArtistResponse> getUsersTopArtists(String username, int page, int size){
         Pageable p = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "playCount"));
-        Page<UserTopArtistResponse> artists = userArtistStatsRepo.findAllById_UserId(userId, p)
+        GetUserByIdResponse response = usersApi.getUserByUsername(username);
+        Page<UserTopArtistResponse> artists = userArtistStatsRepo.findAllById_UserId(response.id(), p)
                 .map(entity -> new UserTopArtistResponse(
                         entity.getArtistName(),
                         entity.getPlayCount()

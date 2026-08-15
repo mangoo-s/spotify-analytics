@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.UUID;
+
 public interface UserTrackStatsRepository extends JpaRepository<UserTrackStatsEntity, UserTrackStatsId> {
     @Modifying
     @Query("""
@@ -18,5 +20,5 @@ public interface UserTrackStatsRepository extends JpaRepository<UserTrackStatsEn
     """)
     int incrementTotalPlays(UserTrackStatsId id);
 
-    Page<UserTrackStatsEntity> findAllById_UserId(Long userId, Pageable p);
+    Page<UserTrackStatsEntity> findAllById_UserId(UUID id, Pageable p);
 }

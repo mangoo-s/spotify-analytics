@@ -18,19 +18,19 @@ public class StatisticsController {
         this.statisticsService = statisticsService;
     }
 
-    @GetMapping("/{id}/top-tracks")
-    public ResponseEntity<CustomPageResponse<UserTopTracksResponse>> getUserTopTracks(@PathVariable long id,
+    @GetMapping("/{username}/top-tracks")
+    public ResponseEntity<CustomPageResponse<UserTopTracksResponse>> getUserTopTracks(@PathVariable String username,
                                                                                       @RequestParam(defaultValue = "0") int page,
                                                                                       @RequestParam(defaultValue = "10") int size){
-        CustomPageResponse<UserTopTracksResponse> response = statisticsService.getUsersTopTracks(id, page, size);
+        CustomPageResponse<UserTopTracksResponse> response = statisticsService.getUsersTopTracks(username, page, size);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @GetMapping("/{id}/top-artists")
-    public ResponseEntity<CustomPageResponse<UserTopArtistResponse>> getUserTopArtists(@PathVariable long id,
+    @GetMapping("/{username}/top-artists")
+    public ResponseEntity<CustomPageResponse<UserTopArtistResponse>> getUserTopArtists(@PathVariable String username,
                                                                                        @RequestParam(defaultValue = "0") int page,
                                                                                        @RequestParam(defaultValue = "10") int size){
-        CustomPageResponse<UserTopArtistResponse> response = statisticsService.getUsersTopArtists(id, page, size);
+        CustomPageResponse<UserTopArtistResponse> response = statisticsService.getUsersTopArtists(username, page, size);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }
