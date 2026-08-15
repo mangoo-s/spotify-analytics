@@ -1,9 +1,8 @@
 package com.example.spotifyscrobble.users.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -14,16 +13,23 @@ public class SpotifyConnectionEntity {
     @Id
     private UUID userId;
 
+    @Setter
     private Instant expiresIn;
 
+    @Setter
     private String accessToken;
 
     private String refreshToken;
 
+    @OneToOne
+    @MapsId
+    @JoinColumn(name = "userId")
+    private UserEntity user;
+
     protected SpotifyConnectionEntity(){}
 
-    public SpotifyConnectionEntity(UUID userId, int expiresIn, String accessToken, String refreshToken){
-        this.userId = userId;
+    public SpotifyConnectionEntity(UserEntity user, int expiresIn, String accessToken, String refreshToken){
+        this.user = user;
         this.refreshToken = refreshToken;
         this.accessToken = accessToken;
         this.expiresIn = Instant.now().plusSeconds(expiresIn);
