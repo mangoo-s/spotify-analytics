@@ -15,7 +15,7 @@ public class TrackEntity {
 
     @NotNull
     @Column(unique = true)
-    private Long spotifyId;
+    private String spotifyId;
 
     @ManyToOne
     @JoinColumn(name = "artist_id")
@@ -29,7 +29,7 @@ public class TrackEntity {
 
     protected TrackEntity() {}
 
-    public TrackEntity(Long spotifyId, ArtistEntity artist, String title, Long duration){
+    public TrackEntity(String spotifyId, ArtistEntity artist, String title, Long duration){
         this.spotifyId = spotifyId;
         this.artist = artist;
         this.title = title;

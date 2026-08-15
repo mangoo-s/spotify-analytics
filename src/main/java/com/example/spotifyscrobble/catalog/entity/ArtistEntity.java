@@ -18,11 +18,11 @@ public class ArtistEntity {
 
     @NotNull
     @Column(unique = true)
-    private Long spotifyId;
+    private String spotifyId;
 
     protected ArtistEntity() {}
 
-    public ArtistEntity(String name, Long spotifyId){
+    public ArtistEntity(String name, String spotifyId){
         this.name = name;
         this.spotifyId = spotifyId;
     }

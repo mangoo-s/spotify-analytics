@@ -5,6 +5,6 @@ import jakarta.validation.constraints.NotNull;
 
 public record ArtistCreatedRequest(
         @NotBlank(message = "Artist name cannot be blank.") String name,
-        @NotNull(message = "Spotify ID cannot be null.") Long spotifyId
+        @NotNull(message = "Spotify ID cannot be null.") String spotifyId
 ) {
 }

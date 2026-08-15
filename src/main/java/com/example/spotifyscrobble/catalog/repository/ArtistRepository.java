@@ -7,7 +7,7 @@ import java.util.Optional;
 
 
 public interface ArtistRepository extends JpaRepository<ArtistEntity, Long> {
-    Optional<ArtistEntity> findBySpotifyId(Long spotifyId);
+    Optional<ArtistEntity> findBySpotifyId(String spotifyId);
 
-    boolean existsBySpotifyId(Long spotifyId);
+    boolean existsBySpotifyId(String spotifyId);
 }
