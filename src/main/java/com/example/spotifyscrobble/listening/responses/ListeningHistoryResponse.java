@@ -6,8 +6,8 @@ import java.time.Instant;
 public record ListeningHistoryResponse(
         String artistName,
         String trackName,
-        Long spotifyArtistId,
-        Long spotifyTrackId,
+        String spotifyArtistId,
+        String spotifyTrackId,
         Instant playedAt
 ) {
 }

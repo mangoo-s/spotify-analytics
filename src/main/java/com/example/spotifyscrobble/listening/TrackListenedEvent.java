@@ -5,9 +5,9 @@ import java.util.UUID;
 
 public record TrackListenedEvent(
         UUID userId,
-        String username,
-        Long spotifyTrackId,
-        Long spotifyArtistId,
+        String username,//No idea if this is even necessary
+        String spotifyTrackId,
+        String spotifyArtistId,
         Instant playedAt,
         String artistName,
         String trackName

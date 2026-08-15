@@ -33,8 +33,8 @@ public class ListenController {
         TrackListenedEvent tst = new TrackListenedEvent(
                 UUID.fromString("d65b26f8-94ef-498e-b617-b51e17ce56e5"),
                 "test",
-                2L,
-                1L,
+                "hi",
+                "hi",
                 Instant.now(),
                 "Drake",
                 "Jumpman"

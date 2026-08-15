@@ -31,10 +31,10 @@ public class ListenEventEntity {
     private String trackName;
 
     @NotNull(message = "ArtistId cannot be null")
-    private Long spotifyArtistId;
+    private String spotifyArtistId;
 
     @NotNull(message = "trackId cannot be null")
-    private Long spotifyTrackId;
+    private String spotifyTrackId;
 
     @NotNull(message = "playedAt cannot be null")
     private Instant playedAt;
@@ -44,7 +44,7 @@ public class ListenEventEntity {
 
     protected ListenEventEntity() { }
 
-    public ListenEventEntity(UUID userId, String username, String artistName, String trackName, Long spotifyTrackId, Long spotifyArtistId, Instant playedAt) {
+    public ListenEventEntity(UUID userId, String username, String artistName, String trackName, String spotifyTrackId, String spotifyArtistId, Instant playedAt) {
         this.userId = userId;
         this.username = username;
         this.trackName = trackName;
