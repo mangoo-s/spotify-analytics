@@ -26,6 +26,9 @@ public class SpotifyConnectionEntity {
     @JoinColumn(name = "userId")
     private UserEntity user;
 
+    @Setter
+    private String after;
+
     protected SpotifyConnectionEntity(){}
 
     public SpotifyConnectionEntity(UserEntity user, int expiresIn, String accessToken, String refreshToken){
