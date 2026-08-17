@@ -1,7 +1,8 @@
 package com.example.spotifyscrobble.users.service;
 
 import com.example.spotifyscrobble.listening.TrackListenedEvent;
-import com.example.spotifyscrobble.users.dto.GetCurrentlyPlayingTrackResponse;
+import com.example.spotifyscrobble.users.dto.GetRecentlyPlayedTracksResponse;
+import com.example.spotifyscrobble.users.dto.Items;
 import com.example.spotifyscrobble.users.dto.SpotifyAccessTokenResponse;
 import com.example.spotifyscrobble.users.entity.SpotifyConnectionEntity;
 import com.example.spotifyscrobble.users.entity.UserEntity;
@@ -43,7 +44,8 @@ public class SpotifyService {
         this.userRepo = userRepo;
         this.events = events;
     }
-    @Scheduled(fixedDelay = 30000)
+
+    @Scheduled(fixedDelay = 300000)
     @Transactional
     public void processPlays(){
         List<SpotifyConnectionEntity> spotifyConnection = spotifyConnectionRepo.findAll();
@@ -52,23 +54,34 @@ public class SpotifyService {
             if(Instant.now().isAfter(user.getExpiresIn())){
                 getNewJwt(user);
             }
-            CurrentlyPlayingResult currentlyPlayingTrackResponse = getCurrentlyPlayingTrack(user);
+            CurrentlyPlayingResult currentlyPlayingTrackResponse = getRecentlyPlayedTracks(user, user.getAfter());
+
 
             switch(currentlyPlayingTrackResponse.status()){
-                case PLAYING ->{
-                    int timeToCountPlay = 30000;
-                    if (currentlyPlayingTrackResponse.result().timestamp() >= timeToCountPlay){
-                        System.out.println("yo");
+                case OK ->{
+                    List<Items> items = currentlyPlayingTrackResponse.response().items();
+
+                    for(Items tracks: currentlyPlayingTrackResponse.response().items()){
                         events.publishEvent(
-                                new TrackListenedEvent(user.getUserId(), user.getUser().getUsername(),
-                                currentlyPlayingTrackResponse.result().item().spotifyId(),
-                                currentlyPlayingTrackResponse.result().item().artists().get(0).spotifyId(),
-                                Instant.now().minusMillis((currentlyPlayingTrackResponse.result().timestamp())),
-                                currentlyPlayingTrackResponse.result().item().artists().get(0).name(),
-                                currentlyPlayingTrackResponse.result().item().name()));
+                                new TrackListenedEvent(
+                                        user.getUserId(),
+                                        user.getUser().getUsername(),
+                                        tracks.item().spotifyId(),
+                                        tracks.item().artists().get(0).spotifyId(),
+                                        Instant.parse(tracks.played_at()),
+                                        tracks.item().artists().get(0).name(),
+                                        tracks.item().name()
+                                )
+                        );
+                    }
+                    if (!items.isEmpty()) {
+                        // items[0] is the most recently played track
+                        Instant mostRecentPlayedAt = Instant.parse(items.get(0).played_at());
+                        user.setAfter(String.valueOf(mostRecentPlayedAt.toEpochMilli()));
+                        spotifyConnectionRepo.save(user);
                     }
                 }
-                case NOTHING_PLAYING, TRANSIENT_FAILURE -> { continue; }
+                case TRANSIENT_FAILURE -> { continue; }
                 case AUTH_FAILED -> {
                     System.out.println("refresh token dont exist so need to log in");
                 }
@@ -78,16 +91,23 @@ public class SpotifyService {
         log.info("Plays at {} have been processed.", Instant.now().truncatedTo(ChronoUnit.MINUTES).toString());
     }
 
-    public CurrentlyPlayingResult getCurrentlyPlayingTrack(SpotifyConnectionEntity user){
+    public CurrentlyPlayingResult getRecentlyPlayedTracks(SpotifyConnectionEntity user, String after){
         RestClient rc = RestClient.create();
 
         try{
-            GetCurrentlyPlayingTrackResponse response = rc.get()
-                    .uri("https://api.spotify.com/v1/me/player/currently-playing")
+            GetRecentlyPlayedTracksResponse response = rc.get()
+                    .uri("https://api.spotify.com/v1/me/player/recently-played", uriBuilder -> uriBuilder
+                            .queryParamIfPresent("after", Optional.ofNullable(after)
+                                    .map(Long::parseLong))
+                            .build())
                     .header("Authorization", "Bearer "+user.getAccessToken())
                     .retrieve()
-                    .body(GetCurrentlyPlayingTrackResponse.class);
-            return response == null ? CurrentlyPlayingResult.nothingPlaying() : CurrentlyPlayingResult.playing(response);
+                    .body(GetRecentlyPlayedTracksResponse.class);
+            if (response == null) {
+                log.warn("Empty response body for user {}", user.getUserId());
+                return CurrentlyPlayingResult.transientFailure();
+            }
+            return CurrentlyPlayingResult.ok(response);
 
         }catch(HttpClientErrorException.Unauthorized e){
             log.warn("Auth issue for user {} :{}", user.getUserId(), e.getResponseBodyAsString());
