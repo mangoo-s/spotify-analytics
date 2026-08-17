@@ -11,26 +11,16 @@ import com.example.spotifyscrobble.users.service.SpotifyService;
 import com.example.spotifyscrobble.users.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
-import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
-import tools.jackson.databind.JsonNode;
 
 import java.io.IOException;
-import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
 
@@ -108,7 +98,7 @@ public class UserController {
     @GetMapping("/current")
     public CurrentlyPlayingResult playingTrack(@AuthenticationPrincipal Jwt jwt){
         SpotifyConnectionEntity user = spotifyConnectionRepo.findById(UUID.fromString(jwt.getSubject())).orElseThrow(() -> new RuntimeException("yo"));
-        return spotifyService.getCurrentlyPlayingTrack(user);
+        return spotifyService.getRecentlyPlayedTracks(user, user.getAfter());
 
     }
 }

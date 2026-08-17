@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
-public record Item(
+public record Track(
         @JsonProperty("name") String name,
         @JsonProperty("id") String spotifyId,
         @JsonProperty("artists") List<Artists> artists
