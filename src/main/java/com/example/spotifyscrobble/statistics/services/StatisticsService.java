@@ -45,7 +45,7 @@ public class StatisticsService {
     @Transactional
     public void handleTrackListenedEvent(CatalogEntriesResolvedEvent event){
         artistStatsUpdater.recordListen(event.artistId(), event.artistName(), event.userId());
-        trackStatsUpdater.recordPlay(event.trackId(), event.trackName()); // Need to make track listener table
+        trackStatsUpdater.recordPlay(event.trackId(), event.trackName(), event.userId()); // Need to make track listener table
         userStatsUpdater.recordTrackPlay(event.userId(), event.trackId(), event.trackName(), event.artistName());
         userStatsUpdater.recordArtistPlay(event.userId(), event.artistId(), event.artistName());
     }
