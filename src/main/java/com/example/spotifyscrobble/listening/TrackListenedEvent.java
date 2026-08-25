@@ -5,11 +5,12 @@ import java.util.UUID;
 
 public record TrackListenedEvent(
         UUID userId,
-        String username,//No idea if this is even necessary
+        String username,
         String spotifyTrackId,
         String spotifyArtistId,
         Instant playedAt,
         String artistName,
-        String trackName
+        String trackName,
+        long duration
 ) {
 }

@@ -37,7 +37,8 @@ public class ListenController {
                 "hi",
                 Instant.now(),
                 "Drake",
-                "Jumpman"
+                "Jumpman",
+                1000L
         );
         listeningService.processTrackListen(tst);
         return ResponseEntity.status(HttpStatus.OK).body("tested");
