@@ -6,6 +6,8 @@ import com.example.spotifyscrobble.users.dto.Items;
 import com.example.spotifyscrobble.users.dto.SpotifyAccessTokenResponse;
 import com.example.spotifyscrobble.users.entity.SpotifyConnectionEntity;
 import com.example.spotifyscrobble.users.entity.UserEntity;
+import com.example.spotifyscrobble.users.exceptions.SpotifyReauthRequiredException;
+import com.example.spotifyscrobble.users.exceptions.SpotifyTokenRefreshException;
 import com.example.spotifyscrobble.users.other.CurrentlyPlayingResult;
 import com.example.spotifyscrobble.users.repository.SpotifyConnectionRepository;
 import com.example.spotifyscrobble.users.repository.UserRepository;
@@ -17,9 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.*;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -52,7 +52,15 @@ public class SpotifyService {
 
         for(SpotifyConnectionEntity user: spotifyConnection){
             if(Instant.now().isAfter(user.getExpiresIn())){
-                getNewJwt(user);
+                try{
+                    getNewJwt(user);
+                }catch(SpotifyReauthRequiredException e){
+                    log.warn("User {} needs to reconnect Spotify", user.getUserId());
+                    continue;
+                }catch(SpotifyTokenRefreshException e){
+                    log.error("Refreshing token had an error for user {}", user.getUserId());
+                    continue;
+                }
             }
             CurrentlyPlayingResult currentlyPlayingTrackResponse = getRecentlyPlayedTracks(user, user.getAfter());
 
@@ -70,7 +78,8 @@ public class SpotifyService {
                                         tracks.item().artists().get(0).spotifyId(),
                                         Instant.parse(tracks.played_at()),
                                         tracks.item().artists().get(0).name(),
-                                        tracks.item().name()
+                                        tracks.item().name(),
+                                        tracks.item().duration()
                                 )
                         );
                     }
@@ -81,7 +90,7 @@ public class SpotifyService {
                         spotifyConnectionRepo.save(user);
                     }
                 }
-                case TRANSIENT_FAILURE -> { continue; }
+                case TRANSIENT_FAILURE -> { }
                 case AUTH_FAILED -> {
                     System.out.println("refresh token dont exist so need to log in");
                 }
@@ -124,27 +133,39 @@ public class SpotifyService {
         }
     }
 
-    public void getNewJwt(SpotifyConnectionEntity user){ //need to add error handling, Need to create restclient config
+    public void getNewJwt(SpotifyConnectionEntity user){ //Need to create restclient config
         RestClient rc = RestClient.create();
         String credentials = Base64.getEncoder().encodeToString((clientId + ":" + clientSecret).getBytes());
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
 
         body.add("grant_type", "refresh_token");
         body.add("refresh_token", user.getRefreshToken());
+        SpotifyAccessTokenResponse tokenResponse;
+        try{
+            tokenResponse = rc.post()
+                    .uri("https://accounts.spotify.com/api/token")
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .header("Authorization", "Basic "+ credentials)
+                    .body(body)
+                    .retrieve()
+                    .body(SpotifyAccessTokenResponse.class);
 
-        SpotifyAccessTokenResponse tokenResponse = rc.post()
-                .uri("https://accounts.spotify.com/api/token")
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .header("Authorization", "Basic "+ credentials)
-                .body(body)
-                .retrieve()
-                .body(SpotifyAccessTokenResponse.class);
+        }catch(HttpClientErrorException.Unauthorized | HttpClientErrorException.BadRequest e){
+            throw new SpotifyReauthRequiredException("Refresh token invalid for user " + user.getUserId(), e);
+        }catch (HttpClientErrorException | HttpServerErrorException | ResourceAccessException e){
+            throw new SpotifyTokenRefreshException("Token refresh failed for user " + user.getUserId(), e);
+        }
+
+        if (tokenResponse == null || tokenResponse.access_token() == null) {
+            throw new SpotifyTokenRefreshException("Spotify returned an empty token response");
+        }
+
         user.setAccessToken(tokenResponse.access_token());
         user.setExpiresIn(Instant.now().plusSeconds(tokenResponse.expiresIn()));
         spotifyConnectionRepo.save(user);
     }
 
-    public void spotifyCallback(String code, String state){
+    public void spotifyCallback(String code, String state){ //Needs error handling too
         RestClient rc = RestClient.create();
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
