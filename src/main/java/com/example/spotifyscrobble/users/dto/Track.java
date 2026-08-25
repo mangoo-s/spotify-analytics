@@ -7,6 +7,7 @@ import java.util.List;
 public record Track(
         @JsonProperty("name") String name,
         @JsonProperty("id") String spotifyId,
-        @JsonProperty("artists") List<Artists> artists
+        @JsonProperty("artists") List<Artists> artists,
+        @JsonProperty("duration_ms") long duration
 ) {
 }
