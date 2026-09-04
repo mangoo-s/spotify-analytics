@@ -1,12 +1,16 @@
 package com.example.spotifyscrobble.listening;
 
-import com.example.spotifyscrobble.catalog.ArtistEntity;
-import com.example.spotifyscrobble.catalog.TrackEntity;
-
 import java.time.Instant;
+import java.util.UUID;
 
-public record TrackListenedEvent(Long userId, Long artistId,
-                                 Long trackId,
-                                 Instant playedAt
+public record TrackListenedEvent(
+        UUID userId,
+        String username,
+        String spotifyTrackId,
+        String spotifyArtistId,
+        Instant playedAt,
+        String artistName,
+        String trackName,
+        long duration
 ) {
 }

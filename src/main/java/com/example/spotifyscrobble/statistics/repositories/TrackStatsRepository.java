@@ -4,7 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import com.example.spotifyscrobble.statistics.entity.TrackStatsEntity;
+import com.example.spotifyscrobble.statistics.entities.TrackStatsEntity;
 
 
 public interface TrackStatsRepository extends JpaRepository<TrackStatsEntity, Long> {
@@ -15,4 +15,12 @@ public interface TrackStatsRepository extends JpaRepository<TrackStatsEntity, Lo
     WHERE ts.trackId = :trackId
     """)
     int incrementTrackPlays(@Param("trackId") Long trackId);
+
+    @Modifying
+    @Query("""
+    UPDATE TrackStatsEntity arts
+    SET arts.listeners = arts.listeners + 1
+    WHERE arts.trackId= :trackId
+    """)
+    int incrementListeners(@Param("trackId") Long trackId);
 }
