@@ -10,6 +10,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.util.UUID;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -26,7 +28,7 @@ public class TrackStatsUpdaterTest { //Need to check for race conditions
     void incrementTrackPlayIgnoringBranch(){
         when(trackStatsRepo.existsById(1L)).thenReturn(true);
 
-        trackStatsUpdater.recordPlay(1L, "Idioteque");
+        trackStatsUpdater.recordPlay(1L, "Idioteque", UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"));
 
         verify(trackStatsRepo).incrementTrackPlays(1L);
         verify(trackStatsRepo, never()).save(any());
@@ -37,7 +39,7 @@ public class TrackStatsUpdaterTest { //Need to check for race conditions
         when(trackStatsRepo.existsById(1L)).thenReturn(false);
         ArgumentCaptor<TrackStatsEntity> captor = ArgumentCaptor.forClass(TrackStatsEntity.class);
 
-        trackStatsUpdater.recordPlay(1L, "Idioteque");
+        trackStatsUpdater.recordPlay(1L, "Idioteque", UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"));
 
         verify(trackStatsRepo).save(captor.capture());
         assertThat(captor.getValue().getTrackId()).isEqualTo(1L);
@@ -52,7 +54,7 @@ public class TrackStatsUpdaterTest { //Need to check for race conditions
         when(trackStatsRepo.save(any())).thenThrow(new DataIntegrityViolationException("dup"));
 
         assertThrows(DataIntegrityViolationException.class, () ->
-                trackStatsUpdater.recordPlay(1L, "Idioteque"));
+                trackStatsUpdater.recordPlay(1L, "Idioteque", UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b")));
 
         verify(trackStatsRepo, never()).incrementTrackPlays(anyLong());
     }
