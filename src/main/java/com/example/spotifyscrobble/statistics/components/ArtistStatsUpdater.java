@@ -21,7 +21,7 @@ public class ArtistStatsUpdater {
     }
 
     @Transactional
-    public void recordListen(Long artistId, String artistName, UUID userId){
+    public void recordListen(Long artistId, String artistName, UUID userId){ // time-of-check to time-of-use race condition here
         if(!artistStatsRepo.existsById(artistId)){
             artistStatsRepo.save(new ArtistStatsEntity(artistId, artistName));
         }
