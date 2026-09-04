@@ -13,6 +13,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.UUID;
+
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -43,7 +45,7 @@ class StatisticsServiceTest {
     @Test
     void handleCatalogEntriesResolvedEventsToEnsureProperAggregationOfStatistics() {
         var event = new CatalogEntriesResolvedEvent(
-                1L,
+                UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"),
                 1L,
                 1L,
                 "psycho",
@@ -51,15 +53,15 @@ class StatisticsServiceTest {
         );
 
         statisticsService.handleTrackListenedEvent(event);
-        verify(artistStatsUpdater).recordListen(1L, "Bladee", 1L);
-        verify(trackStatsUpdater).recordPlay(1L, "psycho");
-        verify(userStatsUpdater).recordArtistPlay(1L, 1L, "Bladee");
-        verify(userStatsUpdater).recordTrackPlay(1L, 1L, "psycho", "Bladee");
+        verify(artistStatsUpdater).recordListen(1L, "Bladee", UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"));
+        verify(trackStatsUpdater).recordPlay(1L, "psycho", UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"));
+        verify(userStatsUpdater).recordArtistPlay(UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"), 1L, "Bladee");
+        verify(userStatsUpdater).recordTrackPlay(UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"), 1L, "psycho", "Bladee");
     }
 
     @Test
     void handleCatalogEntriesEvent_doesNotTouchUnrelatedRepositories() {
-        var event = new CatalogEntriesResolvedEvent(1L, 2L, 10L, "Idioteque", "Radiohead");
+        var event = new CatalogEntriesResolvedEvent(UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"), 2L, 10L, "Idioteque", "Radiohead");
 
         statisticsService.handleTrackListenedEvent(event);
 
