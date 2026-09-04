@@ -1,6 +1,8 @@
 package com.example.spotifyscrobble.catalog.service;
 
 import com.example.spotifyscrobble.catalog.ArtistCreatedEvent;
+import com.example.spotifyscrobble.catalog.CatalogApi;
+import com.example.spotifyscrobble.catalog.GetArtistAndTrackbyTrackIdDto;
 import com.example.spotifyscrobble.catalog.entity.ArtistEntity;
 import com.example.spotifyscrobble.catalog.entity.TrackEntity;
 import com.example.spotifyscrobble.catalog.internalDto.ArtistCreatedRequest;
@@ -11,13 +13,14 @@ import com.example.spotifyscrobble.catalog.repository.ArtistRepository;
 import com.example.spotifyscrobble.catalog.repository.TrackRepository;
 import com.example.spotifyscrobble.shared.ArtistAlreadyExists;
 import com.example.spotifyscrobble.shared.ArtistNotFoundException;
+import com.example.spotifyscrobble.users.dto.Track;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class CatalogService {
+public class CatalogService implements CatalogApi {
     private final ArtistRepository artistRepo;
     private final TrackRepository trackRepo;
     private final ApplicationEventPublisher events;
@@ -47,4 +50,22 @@ public class CatalogService {
         //Create event
         return new TrackCreatedResponse(track.getSpotifyId(), track.getTitle(), artist.getName(), track.getDuration());
     }
+
+    @Override
+    public GetArtistAndTrackbyTrackIdDto getArtistAndTrackByTrackId(long trackId){
+        TrackEntity track = trackRepo.findById(trackId).orElseThrow(() -> new RuntimeException("Test")); //Need custom exception
+        return new GetArtistAndTrackbyTrackIdDto(
+                track.getArtist().getName(),
+                track.getTitle()
+        );
+    }
+
+    @Override
+    public String getArtistNameById(long artistID){
+        ArtistEntity artist = artistRepo.findById(artistID).orElseThrow(() -> new ArtistNotFoundException("This artist does not exist"));
+        return artist.getName();
+    }
+
+
+
 }

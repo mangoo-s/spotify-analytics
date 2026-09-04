@@ -8,6 +8,8 @@ import com.example.spotifyscrobble.users.entity.UserEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class UserService implements UsersApi{
     private final UserRepository userRepo;
@@ -27,6 +29,12 @@ public class UserService implements UsersApi{
     public GetUserByIdResponse getUserByUsername(String username) {
         UserEntity entity = userRepo.findByUsername(username).orElseThrow(() -> new RuntimeException("hi")); //Need to create its own exception
         return new GetUserByIdResponse(entity.getUserId(), entity.getCreatedAt());
+    }
+
+    @Override
+    public String getUsernameByUserId(UUID userId){
+        UserEntity entity = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("hi")); // Need to create its own exception
+        return entity.getUsername();
     }
 
 }
