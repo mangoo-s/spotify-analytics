@@ -14,7 +14,9 @@ import com.example.spotifyscrobble.catalog.repository.TrackRepository;
 import com.example.spotifyscrobble.shared.ArtistAlreadyExists;
 import com.example.spotifyscrobble.shared.ArtistNotFoundException;
 import com.example.spotifyscrobble.users.dto.Track;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -52,6 +54,7 @@ public class CatalogService implements CatalogApi {
     }
 
     @Override
+    @Cacheable(value = "artistAndTrack", key = "#trackId")
     public GetArtistAndTrackbyTrackIdDto getArtistAndTrackByTrackId(long trackId){
         TrackEntity track = trackRepo.findById(trackId).orElseThrow(() -> new RuntimeException("Test")); //Need custom exception
         return new GetArtistAndTrackbyTrackIdDto(
@@ -61,6 +64,7 @@ public class CatalogService implements CatalogApi {
     }
 
     @Override
+    @Cacheable(value = "artistName", key = "#artistID")
     public String getArtistNameById(long artistID){
         ArtistEntity artist = artistRepo.findById(artistID).orElseThrow(() -> new ArtistNotFoundException("This artist does not exist"));
         return artist.getName();
