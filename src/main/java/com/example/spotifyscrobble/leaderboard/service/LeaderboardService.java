@@ -82,7 +82,7 @@ public class LeaderboardService {
         int start = (int) pageable.getOffset();
         int end = start + pageable.getPageSize();
 
-        Set<ZSetOperations.@NonNull TypedTuple<Object>> results = redisTemplate.opsForZSet().reverseRangeWithScores(trackKey(artistId), start, end-1);
+        Set<ZSetOperations.@NonNull TypedTuple<Object>> results = redisTemplate.opsForZSet().reverseRangeWithScores(artistKey(artistId), start, end-1);
         List<LeaderboardArtistEntry> leaderboardToList = new ArrayList<>();
 
         if (results != null && !results.isEmpty()) {
