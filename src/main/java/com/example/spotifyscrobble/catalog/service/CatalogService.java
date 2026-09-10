@@ -16,8 +16,6 @@ import com.example.spotifyscrobble.shared.ArtistAlreadyExists;
 import com.example.spotifyscrobble.shared.ArtistNotFoundException;
 import com.example.spotifyscrobble.shared.TrackAlreadyExistsException;
 import com.example.spotifyscrobble.shared.TrackNotFoundException;
-import com.example.spotifyscrobble.users.dto.Track;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
