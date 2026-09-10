@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -34,7 +35,7 @@ public class UserStatsUpdaterTest {
     //Record Artist Play
     @Test
     void recordArtistPlay_VerifyIfIncrementsIfIdExists(){
-        UserArtistStatsId id = new UserArtistStatsId(1L, 2L);
+        UserArtistStatsId id = new UserArtistStatsId(UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"), 2L);
         UserArtistStatsEntity existingStats = new UserArtistStatsEntity(id, "Radiohead");
         when(userArtistStatsRepo.findById(id)).thenReturn(Optional.of(existingStats));
 
@@ -46,7 +47,7 @@ public class UserStatsUpdaterTest {
 
     @Test
     void recordArtistPlay_SavesNewEntityIfIdDoesntExist(){
-        UserArtistStatsId id = new UserArtistStatsId(1L ,2L);
+        UserArtistStatsId id = new UserArtistStatsId(UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b") ,2L);
         ArgumentCaptor<UserArtistStatsEntity> captor = ArgumentCaptor.forClass(UserArtistStatsEntity.class);
         when(userArtistStatsRepo.findById(id)).thenReturn(Optional.empty());
 
@@ -61,12 +62,12 @@ public class UserStatsUpdaterTest {
 
     @Test
     void recordArtistPlay_DoesNotIncrementIfSaveFails(){
-        UserArtistStatsId id = new UserArtistStatsId(1L, 2L);
+        UserArtistStatsId id = new UserArtistStatsId(UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"), 2L);
         when(userArtistStatsRepo.findById(id)).thenReturn(Optional.empty());
         when(userArtistStatsRepo.save(any())).thenThrow(new DataIntegrityViolationException("dup"));
 
         assertThrows(DataIntegrityViolationException.class, () ->
-                userStatsUpdater.recordArtistPlay(1L, 2L, "Radiohead"));
+                userStatsUpdater.recordArtistPlay(UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"), 2L, "Radiohead"));
 
         verify(userArtistStatsRepo, never()).incrementTotalPlays(any());
     }
@@ -75,11 +76,11 @@ public class UserStatsUpdaterTest {
     //Record Track Play
     @Test
     void recordTrackPlay_VerifyIfIncrementsIfIdExists(){
-        UserTrackStatsId id = new UserTrackStatsId(1L, 2L);
+        UserTrackStatsId id = new UserTrackStatsId(UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"), 2L);
         UserTrackStatsEntity existingStats = new UserTrackStatsEntity(id, "Radiohead", "No Surprises");
         when(userTrackStatsRepo.findById(id)).thenReturn(Optional.of(existingStats));
 
-        userStatsUpdater.recordTrackPlay(1L, 2L, "No Surprises", "Radiohead");
+        userStatsUpdater.recordTrackPlay(UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"), 2L, "No Surprises", "Radiohead");
 
         verify(userTrackStatsRepo).incrementTotalPlays(id);
         verify(userTrackStatsRepo, never()).save(any());
@@ -87,11 +88,11 @@ public class UserStatsUpdaterTest {
 
     @Test
     void recordTrackPlay_SavesNewEntityIfIdDoesntExist(){
-        UserTrackStatsId id = new UserTrackStatsId(1L ,2L);
+        UserTrackStatsId id = new UserTrackStatsId(UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b") ,2L);
         ArgumentCaptor<UserTrackStatsEntity> captor = ArgumentCaptor.forClass(UserTrackStatsEntity.class);
         when(userTrackStatsRepo.findById(id)).thenReturn(Optional.empty());
 
-        userStatsUpdater.recordTrackPlay(1L, 2L, "No Surprises", "Radiohead");
+        userStatsUpdater.recordTrackPlay(UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"), 2L, "No Surprises", "Radiohead");
 
         verify(userTrackStatsRepo).save(captor.capture());
         assertThat(captor.getValue().getArtistName()).isEqualTo("Radiohead");
@@ -102,12 +103,12 @@ public class UserStatsUpdaterTest {
 
     @Test
     void recordTrackPlay_DoesNotIncrementIfSaveFails(){
-        UserTrackStatsId id = new UserTrackStatsId(1L, 2L);
+        UserTrackStatsId id = new UserTrackStatsId(UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"), 2L);
         when(userTrackStatsRepo.findById(id)).thenReturn(Optional.empty());
         when(userTrackStatsRepo.save(any())).thenThrow(new DataIntegrityViolationException("dup"));
 
         assertThrows(DataIntegrityViolationException.class, () ->
-                userStatsUpdater.recordTrackPlay(1L, 2L, "No Surprises", "Radiohead"));
+                userStatsUpdater.recordTrackPlay(UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"), 2L, "No Surprises", "Radiohead"));
 
         verify(userTrackStatsRepo, never()).incrementTotalPlays(any());
     }

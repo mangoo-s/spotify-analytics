@@ -33,4 +33,28 @@ public class GlobalExceptionHandler {
                 Instant.now()
         ));
     }
+
+    @ExceptionHandler(TrackAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> trackAlreadyExists(TrackAlreadyExistsException ex){
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(
+                ex.getMessage(),
+                Instant.now()
+        ));
+    }
+
+    @ExceptionHandler(ArtistAlreadyExistsInStatsException.class)
+    public ResponseEntity<ErrorResponse> artistAlreadyExistsInStatistics(ArtistAlreadyExistsInStatsException ex){
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(
+                ex.getMessage(),
+                Instant.now()
+        ));
+    }
+
+    @ExceptionHandler(TrackStatAlreadyExists.class)
+    public ResponseEntity<ErrorResponse> trackAlreadyExistsInStatistics(TrackAlreadyExistsException ex){
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(
+                ex.getMessage(),
+                Instant.now()
+        ));
+    }
 }
