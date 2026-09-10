@@ -2,6 +2,7 @@ package com.example.spotifyscrobble.catalog.service;
 
 import com.example.spotifyscrobble.catalog.ArtistCreatedEvent;
 import com.example.spotifyscrobble.catalog.GetArtistAndTrackbyTrackIdDto;
+import com.example.spotifyscrobble.catalog.TrackCreatedEvent;
 import com.example.spotifyscrobble.catalog.entity.ArtistEntity;
 import com.example.spotifyscrobble.catalog.entity.TrackEntity;
 import com.example.spotifyscrobble.catalog.internalDto.ArtistCreatedRequest;
