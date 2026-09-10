@@ -1,12 +1,17 @@
 package com.example.spotifyscrobble.statistics.services;
 
 import com.example.spotifyscrobble.catalog.*;
+import com.example.spotifyscrobble.catalog.entity.ArtistEntity;
+import com.example.spotifyscrobble.shared.ArtistAlreadyExistsInStatsException;
 import com.example.spotifyscrobble.shared.CustomPageResponse;
+import com.example.spotifyscrobble.shared.TrackStatAlreadyExists;
 import com.example.spotifyscrobble.statistics.UserTopArtistResponse;
 import com.example.spotifyscrobble.statistics.UserTopTracksResponse;
 import com.example.spotifyscrobble.statistics.components.ArtistStatsUpdater;
 import com.example.spotifyscrobble.statistics.components.TrackStatsUpdater;
 import com.example.spotifyscrobble.statistics.components.UserStatsUpdater;
+import com.example.spotifyscrobble.statistics.entities.ArtistStatsEntity;
+import com.example.spotifyscrobble.statistics.entities.TrackStatsEntity;
 import com.example.spotifyscrobble.statistics.repositories.*;
 import com.example.spotifyscrobble.users.GetUserByIdResponse;
 import com.example.spotifyscrobble.users.UsersApi;
@@ -27,12 +32,14 @@ public class StatisticsService {
     private final UserStatsUpdater userStatsUpdater;
     private final ArtistStatsUpdater artistStatsUpdater;
     private final TrackStatsUpdater trackStatsUpdater;
+    private final ArtistStatsRepository artistStatsRepo;
+    private final TrackStatsRepository trackStatsRepository;
 
     public StatisticsService(UserArtistStatsRepository userArtistStatsRepo,
                              UserTrackStatsRepository userTrackStatsRepo,
                              UsersApi usersApi, UserStatsUpdater userStatsUpdater,
                              ArtistStatsUpdater artistStatsUpdater,
-                             TrackStatsUpdater trackStatsUpdater) {
+                             TrackStatsUpdater trackStatsUpdater, ArtistStatsRepository artistStatsRepository, TrackStatsRepository trackStatsRepository) {
 
         this.userArtistStatsRepo = userArtistStatsRepo;
         this.userTrackStatsRepository = userTrackStatsRepo;
@@ -40,6 +47,8 @@ public class StatisticsService {
         this.userStatsUpdater = userStatsUpdater;
         this.artistStatsUpdater = artistStatsUpdater;
         this.trackStatsUpdater = trackStatsUpdater;
+        this.artistStatsRepo = artistStatsRepository;
+        this.trackStatsRepository = trackStatsRepository;
     }
 
     @Transactional
@@ -48,6 +57,20 @@ public class StatisticsService {
         trackStatsUpdater.recordPlay(event.trackId(), event.trackName(), event.userId()); // Need to make track listener table
         userStatsUpdater.recordTrackPlay(event.userId(), event.trackId(), event.trackName(), event.artistName());
         userStatsUpdater.recordArtistPlay(event.userId(), event.artistId(), event.artistName());
+    }
+
+    public void createArtistStat(ArtistCreatedEvent event){
+        if(artistStatsRepo.existsById(event.artist().getArtistId())){
+            throw new ArtistAlreadyExistsInStatsException("This artist stats already exist.");
+        }
+        artistStatsRepo.save(new ArtistStatsEntity(event.artist().getArtistId(), event.artist().getName()));
+    }
+
+    public void createTrackStat(TrackCreatedEvent event){
+        if(trackStatsRepository.existsById(event.track().getTrackId())){
+            throw new TrackStatAlreadyExists("This tracks stats already exist");
+        }
+        trackStatsRepository.save(new TrackStatsEntity(event.track().getTrackId(), event.track().getTitle()));
     }
 
     public CustomPageResponse<UserTopTracksResponse> getUsersTopTracks(String username, int page, int size){
