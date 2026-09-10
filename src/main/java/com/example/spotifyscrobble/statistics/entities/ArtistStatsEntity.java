@@ -19,7 +19,7 @@ public class ArtistStatsEntity {
     protected ArtistStatsEntity() {}
 
     public ArtistStatsEntity(Long artistId, String name){
-        this.totalPlays = 1L;
+        this.totalPlays = 0L;
         this.listeners = 0L;
         this.artistId = artistId;
         this.name = name;
