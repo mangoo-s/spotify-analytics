@@ -2,7 +2,6 @@ package com.example.spotifyscrobble.catalog.service;
 
 import com.example.spotifyscrobble.catalog.ArtistCreatedEvent;
 import com.example.spotifyscrobble.catalog.GetArtistAndTrackbyTrackIdDto;
-import com.example.spotifyscrobble.catalog.TrackCreatedEvent;
 import com.example.spotifyscrobble.catalog.entity.ArtistEntity;
 import com.example.spotifyscrobble.catalog.entity.TrackEntity;
 import com.example.spotifyscrobble.catalog.internalDto.ArtistCreatedRequest;
@@ -17,7 +16,6 @@ import com.example.spotifyscrobble.shared.TrackAlreadyExistsException;
 import com.example.spotifyscrobble.shared.TrackNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.InvocationInterceptor;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;

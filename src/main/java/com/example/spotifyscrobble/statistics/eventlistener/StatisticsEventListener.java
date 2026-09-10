@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class StatisticsEventListener { ;
-    private final StatisticsService statsService;;
+public class StatisticsEventListener {
+    private final StatisticsService statsService;
 
     public StatisticsEventListener( StatisticsService statsService){
         this.statsService = statsService;
