@@ -3,6 +3,7 @@ package com.example.spotifyscrobble.catalog.service;
 import com.example.spotifyscrobble.catalog.ArtistCreatedEvent;
 import com.example.spotifyscrobble.catalog.CatalogApi;
 import com.example.spotifyscrobble.catalog.GetArtistAndTrackbyTrackIdDto;
+import com.example.spotifyscrobble.catalog.TrackCreatedEvent;
 import com.example.spotifyscrobble.catalog.entity.ArtistEntity;
 import com.example.spotifyscrobble.catalog.entity.TrackEntity;
 import com.example.spotifyscrobble.catalog.internalDto.ArtistCreatedRequest;
@@ -13,6 +14,8 @@ import com.example.spotifyscrobble.catalog.repository.ArtistRepository;
 import com.example.spotifyscrobble.catalog.repository.TrackRepository;
 import com.example.spotifyscrobble.shared.ArtistAlreadyExists;
 import com.example.spotifyscrobble.shared.ArtistNotFoundException;
+import com.example.spotifyscrobble.shared.TrackAlreadyExistsException;
+import com.example.spotifyscrobble.shared.TrackNotFoundException;
 import com.example.spotifyscrobble.users.dto.Track;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -44,19 +47,21 @@ public class CatalogService implements CatalogApi {
         return new ArtistCreatedResponse(artist.getSpotifyId(), artist.getName());
     }
 
-    public TrackCreatedResponse createTrack(TrackCreatedRequest trackCreatedRequest){
-        ArtistEntity artist = artistRepo.findBySpotifyId(trackCreatedRequest.spotifyId()).orElseThrow(() -> new ArtistNotFoundException("Artist with spotifyId "+trackCreatedRequest.spotifyId()+" does not exist therefore the track could not be created. Please create an artist first and then create a track under that artist."));
+    public TrackCreatedResponse createTrack(TrackCreatedRequest trackCreatedRequest){ //Still needs testing
+        ArtistEntity artist = artistRepo.findBySpotifyId(trackCreatedRequest.artistSpotifyId()).orElseThrow(() -> new ArtistNotFoundException("Artist with spotifyId "+trackCreatedRequest.spotifyId()+" does not exist therefore the track could not be created. Please create an artist first and then create a track under that artist."));
+        if(trackRepo.existsBySpotifyId(trackCreatedRequest.spotifyId())){ throw new TrackAlreadyExistsException("This track already exists."); }
+
         TrackEntity track = new TrackEntity(trackCreatedRequest.spotifyId(), artist, trackCreatedRequest.title(), trackCreatedRequest.duration());
         track = trackRepo.save(track);
         log.info("Created new track with title: {} and artistSpotifyId: {} and trackSpotifyId: {}", trackCreatedRequest.title(), artist.getSpotifyId(), trackCreatedRequest.spotifyId());
-        //Create event
+        events.publishEvent(new TrackCreatedEvent(track));
         return new TrackCreatedResponse(track.getSpotifyId(), track.getTitle(), artist.getName(), track.getDuration());
     }
 
     @Override
     @Cacheable(value = "artistAndTrack", key = "#trackId")
     public GetArtistAndTrackbyTrackIdDto getArtistAndTrackByTrackId(long trackId){
-        TrackEntity track = trackRepo.findById(trackId).orElseThrow(() -> new RuntimeException("Test")); //Need custom exception
+        TrackEntity track = trackRepo.findById(trackId).orElseThrow(() -> new TrackNotFoundException("This track does not exist."));
         return new GetArtistAndTrackbyTrackIdDto(
                 track.getArtist().getName(),
                 track.getTitle()

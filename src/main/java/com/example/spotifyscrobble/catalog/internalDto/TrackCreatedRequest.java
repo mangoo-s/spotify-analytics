@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 public record TrackCreatedRequest(
         @NotBlank String title,
         @NotNull String spotifyId,
-        @NotNull Long artistSpotifyId,
+        @NotNull String artistSpotifyId,
         @NotNull Long duration
 
 ) {
