@@ -1,6 +1,7 @@
 package com.example.spotifyscrobble.users.service;
 
 import com.example.spotifyscrobble.listening.TrackListenedEvent;
+import com.example.spotifyscrobble.users.components.SpotifyApiClient;
 import com.example.spotifyscrobble.users.dto.GetRecentlyPlayedTracksResponse;
 import com.example.spotifyscrobble.users.dto.Items;
 import com.example.spotifyscrobble.users.dto.SpotifyAccessTokenResponse;
@@ -36,13 +37,13 @@ public class SpotifyService {
     private String clientSecret;
 
     private final SpotifyConnectionRepository spotifyConnectionRepo;
-    private final UserRepository userRepo;
     private final ApplicationEventPublisher events;
+    private final SpotifyApiClient apiClient;
 
-    public SpotifyService(SpotifyConnectionRepository spotifyConnectionRepo, UserRepository userRepo, ApplicationEventPublisher events) {
+    public SpotifyService(SpotifyConnectionRepository spotifyConnectionRepo, ApplicationEventPublisher events, SpotifyApiClient apiClient) {
         this.spotifyConnectionRepo = spotifyConnectionRepo;
-        this.userRepo = userRepo;
         this.events = events;
+        this.apiClient = apiClient;
     }
 
     @Scheduled(fixedDelay = 300000)
@@ -53,7 +54,7 @@ public class SpotifyService {
         for(SpotifyConnectionEntity user: spotifyConnection){
             if(Instant.now().isAfter(user.getExpiresIn())){
                 try{
-                    getNewJwt(user);
+                    apiClient.getNewJwt(user);
                 }catch(SpotifyReauthRequiredException e){
                     log.warn("User {} needs to reconnect Spotify", user.getUserId());
                     continue;
@@ -62,7 +63,7 @@ public class SpotifyService {
                     continue;
                 }
             }
-            CurrentlyPlayingResult currentlyPlayingTrackResponse = getRecentlyPlayedTracks(user, user.getAfter());
+            CurrentlyPlayingResult currentlyPlayingTrackResponse = apiClient.getRecentlyPlayedTracks(user, user.getAfter());
 
 
             switch(currentlyPlayingTrackResponse.status()){
@@ -100,90 +101,5 @@ public class SpotifyService {
         log.info("Plays at {} have been processed.", Instant.now().truncatedTo(ChronoUnit.MINUTES).toString());
     }
 
-    public CurrentlyPlayingResult getRecentlyPlayedTracks(SpotifyConnectionEntity user, String after){
-        RestClient rc = RestClient.create();
 
-        try{
-            GetRecentlyPlayedTracksResponse response = rc.get()
-                    .uri("https://api.spotify.com/v1/me/player/recently-played", uriBuilder -> uriBuilder
-                            .queryParamIfPresent("after", Optional.ofNullable(after)
-                                    .map(Long::parseLong))
-                            .build())
-                    .header("Authorization", "Bearer "+user.getAccessToken())
-                    .retrieve()
-                    .body(GetRecentlyPlayedTracksResponse.class);
-            if (response == null) {
-                log.warn("Empty response body for user {}", user.getUserId());
-                return CurrentlyPlayingResult.transientFailure();
-            }
-            return CurrentlyPlayingResult.ok(response);
-
-        }catch(HttpClientErrorException.Unauthorized e){
-            log.warn("Auth issue for user {} :{}", user.getUserId(), e.getResponseBodyAsString());
-            return CurrentlyPlayingResult.authFailed();
-        }catch(HttpClientErrorException.Forbidden e){
-            log.warn("Oauth issue for user {}: {}", user.getUserId(), e.getResponseBodyAsString());
-            return CurrentlyPlayingResult.authFailed();
-        }catch(HttpClientErrorException.TooManyRequests e){
-            log.warn("Rate limit reached");
-            return CurrentlyPlayingResult.transientFailure();
-        }catch(RestClientException e){
-            log.warn("Spotify failed for user {}", user.getUserId(), e);
-            return CurrentlyPlayingResult.transientFailure();
-        }
-    }
-
-    public void getNewJwt(SpotifyConnectionEntity user){ //Need to create restclient config
-        RestClient rc = RestClient.create();
-        String credentials = Base64.getEncoder().encodeToString((clientId + ":" + clientSecret).getBytes());
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-
-        body.add("grant_type", "refresh_token");
-        body.add("refresh_token", user.getRefreshToken());
-        SpotifyAccessTokenResponse tokenResponse;
-        try{
-            tokenResponse = rc.post()
-                    .uri("https://accounts.spotify.com/api/token")
-                    .header("Content-Type", "application/x-www-form-urlencoded")
-                    .header("Authorization", "Basic "+ credentials)
-                    .body(body)
-                    .retrieve()
-                    .body(SpotifyAccessTokenResponse.class);
-
-        }catch(HttpClientErrorException.Unauthorized | HttpClientErrorException.BadRequest e){
-            throw new SpotifyReauthRequiredException("Refresh token invalid for user " + user.getUserId(), e);
-        }catch (HttpClientErrorException | HttpServerErrorException | ResourceAccessException e){
-            throw new SpotifyTokenRefreshException("Token refresh failed for user " + user.getUserId(), e);
-        }
-
-        if (tokenResponse == null || tokenResponse.access_token() == null) {
-            throw new SpotifyTokenRefreshException("Spotify returned an empty token response");
-        }
-
-        user.setAccessToken(tokenResponse.access_token());
-        user.setExpiresIn(Instant.now().plusSeconds(tokenResponse.expiresIn()));
-        spotifyConnectionRepo.save(user);
-    }
-
-    public void spotifyCallback(String code, String state){ //Needs error handling too
-        RestClient rc = RestClient.create();
-
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("grant_type", "authorization_code");
-        body.add("code", code);
-        body.add("redirect_uri", "http://127.0.0.1:8080/callback");
-
-        String credentials = Base64.getEncoder().encodeToString((clientId + ":" + clientSecret).getBytes());
-
-        SpotifyAccessTokenResponse tokenResponse = rc.post()
-                .uri("https://accounts.spotify.com/api/token")
-                .header("Authorization", "Basic "+credentials)
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .body(body)
-                .retrieve()
-                .body(SpotifyAccessTokenResponse.class);
-        UserEntity user = userRepo.getReferenceById(UUID.fromString(state));
-        SpotifyConnectionEntity connectionEntity = new SpotifyConnectionEntity(user, tokenResponse.expiresIn(), tokenResponse.access_token(), tokenResponse.refresh_token());
-        spotifyConnectionRepo.save(connectionEntity);
-    }
 }
