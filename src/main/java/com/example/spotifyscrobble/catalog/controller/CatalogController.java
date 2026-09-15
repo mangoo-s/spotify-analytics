@@ -18,25 +18,25 @@ public class CatalogController {
         this.catalogService = catalogService;
     }
 
-    @PostMapping("/artist")
+    @PostMapping("/artists")
     public ResponseEntity<ArtistCreatedResponse> createNewArtist(@RequestBody @Valid ArtistCreatedRequest artistCreatedRequest){
         ArtistCreatedResponse response = catalogService.createArtist(artistCreatedRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/track")
+    @PostMapping("/tracks")
     public ResponseEntity<TrackCreatedResponse> createNewTrack(@Valid @RequestBody TrackCreatedRequest trackCreatedRequest){
         TrackCreatedResponse response = catalogService.createTrack(trackCreatedRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/artist/{id}")
+    @GetMapping("/artists/{id}")
     public ResponseEntity<GetArtistResponse> getArtist(@PathVariable long id){
         return ResponseEntity.status(HttpStatus.OK).body(catalogService.getArtist(id));
     }
 
 
-    @GetMapping("/track/{id}")
+    @GetMapping("/tracks/{id}")
     public ResponseEntity<GetTrackResponse> getTrack(@PathVariable long id){
         System.out.println("hello");
         return ResponseEntity.status(HttpStatus.OK).body(catalogService.getTrack(id));
@@ -49,21 +49,21 @@ public class CatalogController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    @DeleteMapping("/track/{id}")
+    @DeleteMapping("/tracks/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteTrack(@PathVariable long id){
         catalogService.deleteTrack(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    @PatchMapping("/artist/{id}")
+    @PatchMapping("/artists/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateArtist(@PathVariable long id, @RequestBody UpdateArtistRequest updateArtistRequest){
         catalogService.updateArtist(id, updateArtistRequest);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    @PatchMapping("/track/{id}")
+    @PatchMapping("/tracks/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateTrack(@PathVariable long id, @RequestBody UpdateTrackRequest updateTrackRequest){
         catalogService.updateTrack(id, updateTrackRequest);
