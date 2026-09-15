@@ -57,4 +57,13 @@ public class GlobalExceptionHandler {
                 Instant.now()
         ));
     }
+
+    @ExceptionHandler(TrackNotFoundException.class)
+    public ResponseEntity<ErrorResponse> trackNotFound(TrackNotFoundException ex){
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(
+                ex.getMessage(),
+                Instant.now()
+        ));
+    }
+
 }
