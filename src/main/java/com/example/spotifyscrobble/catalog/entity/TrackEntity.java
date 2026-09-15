@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "tracks")
@@ -15,6 +16,7 @@ public class TrackEntity {
 
     @NotNull
     @Column(unique = true)
+    @Setter
     private String spotifyId;
 
     @ManyToOne
@@ -22,9 +24,11 @@ public class TrackEntity {
     private ArtistEntity artist;
 
     @NotBlank
+    @Setter
     private String title;
 
     @NotNull
+    @Setter
     private Long duration;
 
     protected TrackEntity() {}
