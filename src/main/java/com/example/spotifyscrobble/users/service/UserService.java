@@ -39,4 +39,9 @@ public class UserService implements UsersApi{
         return entity.getUsername();
     }
 
+    @Override
+    public boolean checkIfUserExistsByUsername(String username){
+        return userRepo.existsByUsername(username);
+    }
+
 }
