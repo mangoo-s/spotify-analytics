@@ -5,11 +5,13 @@ import com.example.spotifyscrobble.listening.entities.ListenEventEntity;
 import com.example.spotifyscrobble.listening.responses.ListeningHistoryResponse;
 import com.example.spotifyscrobble.listening.repositories.ListeningHistoryRepository;
 import com.example.spotifyscrobble.shared.CustomPageResponse;
+import com.example.spotifyscrobble.users.UsersApi;
 import com.example.spotifyscrobble.users.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,10 +22,12 @@ import java.util.UUID;
 public class ListeningService {
     private final ApplicationEventPublisher events;
     private final ListeningHistoryRepository listeningHistoryRepo;
+    private final UsersApi usersApi;
 
-    public ListeningService(ApplicationEventPublisher events, ListeningHistoryRepository listeningHistoryRepo){
+    public ListeningService(ApplicationEventPublisher events, ListeningHistoryRepository listeningHistoryRepo, UsersApi usersApi){
         this.events = events;
         this.listeningHistoryRepo = listeningHistoryRepo;
+        this.usersApi = usersApi;
     }
 
     @Transactional
@@ -36,6 +40,10 @@ public class ListeningService {
     }
 
     public CustomPageResponse<ListeningHistoryResponse> getUserListeningHistory(String username, Pageable p){
+        if(!usersApi.checkIfUserExistsByUsername(username)){
+            throw new UsernameNotFoundException("This username does not exist.");
+        }
+
         Page<ListeningHistoryResponse> result = listeningHistoryRepo.findAllByUsername(username, p)
                 .map(entity -> new ListeningHistoryResponse(
                         entity.getArtistName(),
