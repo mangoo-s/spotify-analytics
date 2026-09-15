@@ -5,6 +5,7 @@ import com.example.spotifyscrobble.listening.services.ListeningService;
 import com.example.spotifyscrobble.listening.TrackListenedEvent;
 import com.example.spotifyscrobble.shared.CustomPageResponse;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,24 +24,9 @@ public class ListenController {
     }
 
     @GetMapping("/users/{username}/history")
-    public ResponseEntity<CustomPageResponse<ListeningHistoryResponse>> getListeningHistory(@PathVariable String username, Pageable p){
+    public ResponseEntity<CustomPageResponse<ListeningHistoryResponse>> getListeningHistory(@PathVariable String username, @PageableDefault(size=10, page = 0) Pageable p){
         CustomPageResponse<ListeningHistoryResponse> response = listeningService.getUserListeningHistory(username, p);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @GetMapping("/test")
-    public ResponseEntity<?> test() {
-        TrackListenedEvent tst = new TrackListenedEvent(
-                UUID.fromString("d65b26f8-94ef-498e-b617-b51e17ce56e5"),
-                "test",
-                "hi",
-                "hi",
-                Instant.now(),
-                "Drake",
-                "Jumpman",
-                1000L
-        );
-        listeningService.processTrackListen(tst);
-        return ResponseEntity.status(HttpStatus.OK).body("tested");
-    }
 }
