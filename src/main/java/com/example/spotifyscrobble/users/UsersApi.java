@@ -7,4 +7,6 @@ public interface UsersApi {
     GetUserByIdResponse getUserByUsername(String username);
 
     String getUsernameByUserId(UUID userId);
+
+    boolean checkIfUserExistsByUsername(String username);
 }
