@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
+@RequestMapping("/user")
 public class UserController {
     private final UserService userService;
     private final UserRepository userRepo;
@@ -98,10 +99,4 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body("Spotify connected");
     }
 
-    @GetMapping("/current")
-    public CurrentlyPlayingResult playingTrack(@AuthenticationPrincipal Jwt jwt){
-        SpotifyConnectionEntity user = spotifyConnectionRepo.findById(UUID.fromString(jwt.getSubject())).orElseThrow(() -> new RuntimeException("yo"));
-        return apiClient.getRecentlyPlayedTracks(user, user.getAfter());
-
-    }
 }
