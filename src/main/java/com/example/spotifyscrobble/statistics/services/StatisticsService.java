@@ -73,10 +73,14 @@ public class StatisticsService {
         trackStatsRepository.save(new TrackStatsEntity(event.track().getTrackId(), event.track().getTitle()));
     }
 
-    public CustomPageResponse<UserTopTracksResponse> getUsersTopTracks(String username, int page, int size){
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "playCount"));
+    public CustomPageResponse<UserTopTracksResponse> getUsersTopTracks(String username, Pageable page){
+        Pageable sortedPage = PageRequest.of(
+                page.getPageNumber(),
+                page.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "playCount")
+        );
         GetUserByIdResponse response = usersApi.getUserByUsername(username);
-        Page<UserTopTracksResponse> tracks = userTrackStatsRepository.findAllById_UserId(response.id(), pageable)
+        Page<UserTopTracksResponse> tracks = userTrackStatsRepository.findAllById_UserId(response.id(), sortedPage)
                 .map(entity -> new UserTopTracksResponse(
                         entity.getTrackName(),
                         entity.getArtistName(),
@@ -85,10 +89,15 @@ public class StatisticsService {
         return new CustomPageResponse<>(tracks);
     }
 
-    public CustomPageResponse<UserTopArtistResponse> getUsersTopArtists(String username, int page, int size){
-        Pageable p = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "playCount"));
+    public CustomPageResponse<UserTopArtistResponse> getUsersTopArtists(String username, Pageable page){
+        Pageable sortedPage = PageRequest.of(
+                page.getPageNumber(),
+                page.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "playCount")
+        );
+
         GetUserByIdResponse response = usersApi.getUserByUsername(username);
-        Page<UserTopArtistResponse> artists = userArtistStatsRepo.findAllById_UserId(response.id(), p)
+        Page<UserTopArtistResponse> artists = userArtistStatsRepo.findAllById_UserId(response.id(), sortedPage)
                 .map(entity -> new UserTopArtistResponse(
                         entity.getArtistName(),
                         entity.getPlayCount()

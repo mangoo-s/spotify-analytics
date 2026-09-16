@@ -5,6 +5,7 @@ import com.example.spotifyscrobble.statistics.UserTopArtistResponse;
 import com.example.spotifyscrobble.statistics.UserTopTracksResponse;
 import com.example.spotifyscrobble.statistics.services.StatisticsService;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,18 +20,14 @@ public class StatisticsController {
     }
 
     @GetMapping("/{username}/top-tracks")
-    public ResponseEntity<CustomPageResponse<UserTopTracksResponse>> getUserTopTracks(@PathVariable String username,
-                                                                                      @RequestParam(defaultValue = "0") int page,
-                                                                                      @RequestParam(defaultValue = "10") int size){
-        CustomPageResponse<UserTopTracksResponse> response = statisticsService.getUsersTopTracks(username, page, size);
+    public ResponseEntity<CustomPageResponse<UserTopTracksResponse>> getUserTopTracks(@PathVariable String username, @PageableDefault(size = 10, page = 0) Pageable page){
+        CustomPageResponse<UserTopTracksResponse> response = statisticsService.getUsersTopTracks(username, page);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/{username}/top-artists")
-    public ResponseEntity<CustomPageResponse<UserTopArtistResponse>> getUserTopArtists(@PathVariable String username,
-                                                                                       @RequestParam(defaultValue = "0") int page,
-                                                                                       @RequestParam(defaultValue = "10") int size){
-        CustomPageResponse<UserTopArtistResponse> response = statisticsService.getUsersTopArtists(username, page, size);
+    public ResponseEntity<CustomPageResponse<UserTopArtistResponse>> getUserTopArtists(@PathVariable String username, @PageableDefault(size = 10, page = 0) Pageable page){
+        CustomPageResponse<UserTopArtistResponse> response = statisticsService.getUsersTopArtists(username, page);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

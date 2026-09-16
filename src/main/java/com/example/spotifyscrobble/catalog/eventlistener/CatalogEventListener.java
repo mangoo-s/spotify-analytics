@@ -32,7 +32,7 @@ public class CatalogEventListener {
         );
 
         TrackEntity track = trackRepo.findBySpotifyId(event.spotifyTrackId()).orElseGet(
-                () -> trackRepo.save(new TrackEntity(event.spotifyTrackId(), artist, event.trackName(), 0L))
+                () -> trackRepo.save(new TrackEntity(event.spotifyTrackId(), artist, event.trackName(), event.duration()))
         );
         log.info("TrackListenedEvent has been Completed by StatisticsEventListener. Now publishing CatalogEntriesResolvedEvent.");
         events.publishEvent(new CatalogEntriesResolvedEvent(event.userId(), artist.getArtistId(), track.getTrackId(), track.getTitle(), artist.getName()));

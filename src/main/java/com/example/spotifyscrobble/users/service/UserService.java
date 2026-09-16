@@ -6,6 +6,7 @@ import com.example.spotifyscrobble.users.GetUserByIdResponse;
 import com.example.spotifyscrobble.users.repository.UserRepository;
 import com.example.spotifyscrobble.users.entity.UserEntity;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +29,7 @@ public class UserService implements UsersApi{
 
     @Override
     public GetUserByIdResponse getUserByUsername(String username) {
-        UserEntity entity = userRepo.findByUsername(username).orElseThrow(() -> new RuntimeException("hi")); //Need to create its own exception
+        UserEntity entity = userRepo.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("This username does not exist."));
         return new GetUserByIdResponse(entity.getUserId(), entity.getCreatedAt());
     }
 
@@ -37,6 +38,11 @@ public class UserService implements UsersApi{
     public String getUsernameByUserId(UUID userId){
         UserEntity entity = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("hi")); // Need to create its own exception
         return entity.getUsername();
+    }
+
+    @Override
+    public boolean checkIfUserExistsByUsername(String username){
+        return userRepo.existsByUsername(username);
     }
 
 }

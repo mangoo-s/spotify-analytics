@@ -17,7 +17,6 @@ import com.example.spotifyscrobble.shared.TrackAlreadyExistsException;
 import com.example.spotifyscrobble.shared.TrackNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.InvocationInterceptor;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;

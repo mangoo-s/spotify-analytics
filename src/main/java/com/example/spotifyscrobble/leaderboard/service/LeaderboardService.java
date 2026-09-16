@@ -99,8 +99,8 @@ public class LeaderboardService {
 
                 leaderboardToList.add(
                         new LeaderboardArtistEntry(
-                                usersApi.getUsernameByUserId(UUID.fromString(value.toString())),
                                 name,
+                                usersApi.getUsernameByUserId(UUID.fromString(value.toString())),
                                 score,
                                 rank
                         )
