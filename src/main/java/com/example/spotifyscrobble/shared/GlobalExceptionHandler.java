@@ -2,6 +2,7 @@ package com.example.spotifyscrobble.shared;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -63,6 +64,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(
                 ex.getMessage(),
                 Instant.now()
+        ));
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ErrorResponse> usernameNotFound(UsernameNotFoundException ex){
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(
+                ex.getMessage(),
+                Instant.now()
+
         ));
     }
 
