@@ -29,7 +29,7 @@ public class UserService implements UsersApi{
 
     @Override
     public GetUserByIdResponse getUserByUsername(String username) {
-        UserEntity entity = userRepo.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("This username does not exist.")); //Need to create its own exception
+        UserEntity entity = userRepo.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("This username does not exist."));
         return new GetUserByIdResponse(entity.getUserId(), entity.getCreatedAt());
     }
 
