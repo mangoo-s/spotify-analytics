@@ -1,14 +1,9 @@
 package com.example.spotifyscrobble.catalog.service;
 
-import com.example.spotifyscrobble.catalog.ArtistCreatedEvent;
-import com.example.spotifyscrobble.catalog.GetArtistAndTrackbyTrackIdDto;
-import com.example.spotifyscrobble.catalog.TrackCreatedEvent;
+import com.example.spotifyscrobble.catalog.*;
 import com.example.spotifyscrobble.catalog.entity.ArtistEntity;
 import com.example.spotifyscrobble.catalog.entity.TrackEntity;
-import com.example.spotifyscrobble.catalog.internalDto.ArtistCreatedRequest;
-import com.example.spotifyscrobble.catalog.internalDto.ArtistCreatedResponse;
-import com.example.spotifyscrobble.catalog.internalDto.TrackCreatedRequest;
-import com.example.spotifyscrobble.catalog.internalDto.TrackCreatedResponse;
+import com.example.spotifyscrobble.catalog.internalDto.*;
 import com.example.spotifyscrobble.catalog.repository.ArtistRepository;
 import com.example.spotifyscrobble.catalog.repository.TrackRepository;
 import com.example.spotifyscrobble.shared.ArtistAlreadyExists;
@@ -217,4 +212,217 @@ public class CatalogServiceTest {
 
         assertThrows(ArtistNotFoundException.class, () -> catalogService.getArtistNameById(1L));
     }
+
+    @Test
+    void getArtist_ReturnsArtistWhenArtistExists(){
+        ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
+        when(artistRepo.findById(1L)).thenReturn(Optional.of(artist));
+
+        GetArtistResponse response = catalogService.getArtist(1L);
+
+        assertThat(response.name()).isEqualTo("artist");
+        assertThat(response.spotifyId()).isEqualTo("artistSpotifyId");
+    }
+
+    @Test
+    void getArtist_ThrowsErrorWhenArtistDoesntExist(){
+        when(artistRepo.findById(1L)).thenThrow(new ArtistNotFoundException("This artist does not exist"));
+
+        assertThrows(ArtistNotFoundException.class, () -> catalogService.getArtist(1L));
+
+    }
+
+    @Test
+    void getTrack_ReturnsTrackWhenTrackExists(){
+        ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
+        TrackEntity track = new TrackEntity("trackSpotifyId", artist, "title", 3600L);
+        when(trackRepo.findById(1L)).thenReturn(Optional.of(track));
+
+        GetTrackResponse response = catalogService.getTrack(1L);
+
+        assertThat(response.trackName()).isEqualTo("title");
+        assertThat(response.trackSpotifyId()).isEqualTo("trackSpotifyId");
+        assertThat(response.length()).isEqualTo(3600L);
+        assertThat(response.artistName()).isEqualTo("artist");
+        assertThat(response.artistSpotifyId()).isEqualTo("artistSpotifyId");
+    }
+
+    @Test
+    void deleteArtist_DeletesArtistWhenItExistsAndPublishesEvent(){
+        when(artistRepo.existsById(1L)).thenReturn(true);
+
+        catalogService.deleteArtist(1L);
+
+        ArgumentCaptor<ArtistDeletedEvent> captor = ArgumentCaptor.forClass(ArtistDeletedEvent.class);
+        verify(artistRepo, times(1)).deleteById(1L);
+        verify(events).publishEvent(captor.capture());
+        assertThat(captor.getValue().id()).isEqualTo(1L);
+    }
+
+    @Test
+    void deleteArtist_DoesNotDeleteArtistWhenItDoesNotExist(){
+        when(artistRepo.existsById(1L)).thenReturn(false);
+
+        assertThrows(ArtistNotFoundException.class, () -> catalogService.deleteArtist(1L));
+
+        verify(artistRepo, never()).deleteById(any());
+        verify(events, never()).publishEvent(any());
+    }
+
+    @Test
+    void deleteTrack_DeletesTrackWhenItExistsAndPublishesEvent(){
+        when(trackRepo.existsById(1L)).thenReturn(true);
+
+        catalogService.deleteTrack(1L);
+        ArgumentCaptor<TrackDeletedEvent> captor = ArgumentCaptor.forClass(TrackDeletedEvent.class);
+        verify(trackRepo, times(1)).deleteById(1L);
+        verify(events).publishEvent(captor.capture());
+        assertThat(captor.getValue().trackId()).isEqualTo(1L);
+
+    }
+
+    @Test
+    void deleteTrack_DoesNotDeleteTrackWhenTrackDoesNotExist(){
+        when(trackRepo.existsById(1L)).thenReturn(false);
+
+        assertThrows(TrackNotFoundException.class, () -> catalogService.deleteTrack(1L));
+
+        verify(trackRepo, never()).deleteById(any());
+        verify(events, never()).publishEvent(any());
+    }
+
+    @Test
+    void updateArtist_UpdatesArtistWhenGivenValidFields(){
+        UpdateArtistRequest request = new UpdateArtistRequest("updatedArtist", "updatedArtistSpotifyId");
+        ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
+
+        when(artistRepo.findById(1L)).thenReturn(Optional.of(artist));
+        when(artistRepo.existsBySpotifyId("updatedArtistSpotifyId")).thenReturn(false);
+
+        catalogService.updateArtist(1L, request);
+
+        verify(artistRepo).save(artist);
+        assertThat(artist.getSpotifyId()).isEqualTo("updatedArtistSpotifyId");
+        assertThat(artist.getName()).isEqualTo("updatedArtist");
+
+    }
+
+    @Test
+    void updateArtist_UpdatesArtistWhenGivenPartialFields(){
+        UpdateArtistRequest request = new UpdateArtistRequest("", "updatedArtistSpotifyId");
+        ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
+
+        when(artistRepo.findById(1L)).thenReturn(Optional.of(artist));
+        when(artistRepo.existsBySpotifyId("updatedArtistSpotifyId")).thenReturn(false);
+
+        catalogService.updateArtist(1L, request);
+
+        verify(artistRepo).save(artist);
+        assertThat(artist.getSpotifyId()).isEqualTo("updatedArtistSpotifyId");
+        assertThat(artist.getName()).isEqualTo("artist");
+
+    }
+
+    @Test
+    void updateArtist_DoesNotUpdateArtistWhenGivenNoFields(){
+        UpdateArtistRequest request = new UpdateArtistRequest("", "");
+        ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
+
+        when(artistRepo.findById(1L)).thenReturn(Optional.of(artist));
+
+        catalogService.updateArtist(1L, request);
+
+        verify(artistRepo).save(artist);
+        assertThat(artist.getName()).isEqualTo("artist");
+        assertThat(artist.getSpotifyId()).isEqualTo("artistSpotifyId");
+    }
+
+    @Test
+    void updateArtist_ThrowsErrorWhenGivenSpotifyIdAlreadyExistsAsSpotifyIdsNeedToBeUnique(){
+        UpdateArtistRequest request = new UpdateArtistRequest("", "artistSpotifyId");
+        ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
+
+        when(artistRepo.findById(1L)).thenReturn(Optional.of(artist));
+        when(artistRepo.existsBySpotifyId("artistSpotifyId")).thenThrow(new ArtistAlreadyExists("An artist with this spotifyId already exists"));
+
+        assertThrows(ArtistAlreadyExists.class, () -> catalogService.updateArtist(1L, request));
+
+        verify(artistRepo, never()).save(any());
+
+    }
+
+    @Test
+    void updateTrack_UpdatesTrackWhenAllGivenFieldsAreValid(){
+        UpdateTrackRequest request = new UpdateTrackRequest("updatedTrack", "updatedTrackSpotifyId", 3500L);
+        ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
+        TrackEntity track = new TrackEntity("trackSpotifyId", artist, "title", 3600L);
+
+        when(trackRepo.findById(1L)).thenReturn(Optional.of(track));
+        when(trackRepo.existsBySpotifyId("updatedTrackSpotifyId")).thenReturn(false);
+
+        catalogService.updateTrack(1L, request);
+
+        verify(trackRepo).save(track);
+        assertThat(track.getSpotifyId()).isEqualTo("updatedTrackSpotifyId");
+        assertThat(track.getTitle()).isEqualTo("updatedTrack");
+        assertThat(track.getDuration()).isEqualTo(3500L);
+        assertThat(track.getArtist()).isEqualTo(artist);
+
+    }
+
+    @Test
+    void updateTrack_UpdatesTrackWhenPartialFieldsAreGiven(){
+        UpdateTrackRequest request = new UpdateTrackRequest("", "updatedTrackSpotifyId", null);
+        ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
+        TrackEntity track = new TrackEntity("trackSpotifyId", artist, "title", 3600L);
+
+        when(trackRepo.findById(1L)).thenReturn(Optional.of(track));
+        when(trackRepo.existsBySpotifyId("updatedTrackSpotifyId")).thenReturn(false);
+
+        catalogService.updateTrack(1L, request);
+
+        verify(trackRepo).save(track);
+        assertThat(track.getSpotifyId()).isEqualTo("updatedTrackSpotifyId");
+        assertThat(track.getTitle()).isEqualTo("title");
+        assertThat(track.getDuration()).isEqualTo(3600L);
+        assertThat(track.getArtist()).isEqualTo(artist);
+    }
+
+    @Test
+    void updateTrack_ThrowsErrorWhenTrackWithSameSpotifyIdGivenInRequestIsPresent(){
+        UpdateTrackRequest request = new UpdateTrackRequest("", "updatedTrackSpotifyId", 3600L);
+        ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
+        TrackEntity track = new TrackEntity("trackSpotifyId", artist, "title", 3600L);
+
+        when(trackRepo.findById(1L)).thenReturn(Optional.of(track));
+        when(trackRepo.existsBySpotifyId("updatedTrackSpotifyId")).thenReturn(true);
+
+        assertThrows(TrackAlreadyExistsException.class, () -> catalogService.updateTrack(1L, request));
+
+        verify(trackRepo, never()).save(any());
+        assertThat(track.getSpotifyId()).isEqualTo("trackSpotifyId");
+        assertThat(track.getTitle()).isEqualTo("title");
+        assertThat(track.getDuration()).isEqualTo(3600L);
+        assertThat(track.getArtist()).isEqualTo(artist);
+
+    }
+
+    @Test
+    void updateTrack_DoesNotUpdateAnythingWhenNoFieldsAreGiven(){
+        UpdateTrackRequest request = new UpdateTrackRequest("", "", null);
+        ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
+        TrackEntity track = new TrackEntity("trackSpotifyId", artist, "title", 3600L);
+
+        when(trackRepo.findById(1L)).thenReturn(Optional.of(track));
+
+        catalogService.updateTrack(1L, request);
+
+        verify(trackRepo).save(track);
+        assertThat(track.getSpotifyId()).isEqualTo("trackSpotifyId");
+        assertThat(track.getTitle()).isEqualTo("title");
+        assertThat(track.getDuration()).isEqualTo(3600L);
+        assertThat(track.getArtist()).isEqualTo(artist);
+
+    }
+
 }
