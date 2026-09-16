@@ -1,9 +1,6 @@
 package com.example.spotifyscrobble.catalog.service;
 
-import com.example.spotifyscrobble.catalog.ArtistCreatedEvent;
-import com.example.spotifyscrobble.catalog.CatalogApi;
-import com.example.spotifyscrobble.catalog.GetArtistAndTrackbyTrackIdDto;
-import com.example.spotifyscrobble.catalog.TrackCreatedEvent;
+import com.example.spotifyscrobble.catalog.*;
 import com.example.spotifyscrobble.catalog.entity.ArtistEntity;
 import com.example.spotifyscrobble.catalog.entity.TrackEntity;
 import com.example.spotifyscrobble.catalog.internalDto.*;
@@ -81,42 +78,49 @@ public class CatalogService implements CatalogApi {
     }
 
     public void deleteArtist(long id){
+        if(!artistRepo.existsById(id)){
+            throw new ArtistNotFoundException("This artist does not exist.");
+        }
         artistRepo.deleteById(id);
-        //Need to create an event that deletes all info on artist
+        events.publishEvent(new ArtistDeletedEvent(id));
     }
 
     public void deleteTrack(long id){
+        if(!trackRepo.existsById(id)){
+            throw new TrackNotFoundException("This track does not exist.");
+        }
         trackRepo.deleteById(id);
-        //need to create an event that deletes all info on track
+        events.publishEvent(new TrackDeletedEvent(id));
     }
 
     public void updateArtist(long id, UpdateArtistRequest updateArtistRequest){
         ArtistEntity artist = artistRepo.findById(id).orElseThrow(() -> new ArtistNotFoundException("This artist does not exist"));
-        if(artistRepo.existsBySpotifyId(updateArtistRequest.spotifyId())){
-            throw new ArtistAlreadyExists("An artist with this spotifyId already exists.");
-        }
 
         if(!updateArtistRequest.name().isBlank()){
             artist.setName(updateArtistRequest.name());
         }
 
         if(!updateArtistRequest.spotifyId().isBlank()){
+            if(artistRepo.existsBySpotifyId(updateArtistRequest.spotifyId())){
+                throw new ArtistAlreadyExists("An artist with this spotifyId already exists.");
+            }
             artist.setSpotifyId(updateArtistRequest.spotifyId());
-        }        artistRepo.save(artist);
+        }
+        artistRepo.save(artist);
 
     }
 
     public void updateTrack(long id, UpdateTrackRequest updateTrackRequest){
         TrackEntity track = trackRepo.findById(id).orElseThrow(() -> new TrackNotFoundException("This track does not exist."));
-        if(trackRepo.existsBySpotifyId(updateTrackRequest.trackSpotifyId())){
-            throw new TrackAlreadyExistsException("This track already exists");
-        }
 
         if(!updateTrackRequest.name().isBlank()){
             track.setTitle(updateTrackRequest.name());
         }
 
         if(!updateTrackRequest.trackSpotifyId().isBlank()){
+            if(trackRepo.existsBySpotifyId(updateTrackRequest.trackSpotifyId())){
+                throw new TrackAlreadyExistsException("This track already exists");
+            }
             track.setSpotifyId(updateTrackRequest.trackSpotifyId());
         }
 
