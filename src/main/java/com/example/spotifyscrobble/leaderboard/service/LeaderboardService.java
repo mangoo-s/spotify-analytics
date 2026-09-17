@@ -1,12 +1,16 @@
 package com.example.spotifyscrobble.leaderboard.service;
 
+import com.example.spotifyscrobble.catalog.ArtistDeletedEvent;
 import com.example.spotifyscrobble.catalog.CatalogApi;
 import com.example.spotifyscrobble.catalog.GetArtistAndTrackbyTrackIdDto;
+import com.example.spotifyscrobble.catalog.TrackDeletedEvent;
 import com.example.spotifyscrobble.leaderboard.dtos.LeaderboardArtistEntry;
 import com.example.spotifyscrobble.leaderboard.dtos.LeaderboardGlobalArtistEntry;
 import com.example.spotifyscrobble.leaderboard.dtos.LeaderboardGlobalTrackEntry;
 import com.example.spotifyscrobble.leaderboard.dtos.LeaderboardUserEntry;
+import com.example.spotifyscrobble.shared.ArtistNotFoundException;
 import com.example.spotifyscrobble.shared.CustomPageResponse;
+import com.example.spotifyscrobble.shared.TrackNotFoundException;
 import com.example.spotifyscrobble.users.UsersApi;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -109,7 +113,7 @@ public class LeaderboardService {
             }
         }
 
-        Long totalElements = redisTemplate.opsForZSet().zCard(trackKey(artistId));
+        Long totalElements = redisTemplate.opsForZSet().zCard(artistKey(artistId));
         totalElements = totalElements == null ? 0L : totalElements;
 
         Page<LeaderboardArtistEntry> page = new PageImpl<>(leaderboardToList, pageable, totalElements);
@@ -173,7 +177,13 @@ public class LeaderboardService {
                     log.warn("Value or score is null in LeaderboardService getTopGlobalTracks");
                     continue;
                 }
-                GetArtistAndTrackbyTrackIdDto getArtistAndTrackbyTrackIdDto = catalogApi.getArtistAndTrackByTrackId(Long.parseLong((String) value));
+                GetArtistAndTrackbyTrackIdDto getArtistAndTrackbyTrackIdDto;
+                try{
+                    getArtistAndTrackbyTrackIdDto = catalogApi.getArtistAndTrackByTrackId(Long.parseLong((String) value));
+                }catch(TrackNotFoundException e){
+                    log.warn("Track {} referenced in global leaderboard no longer exists, skipping", value);
+                    continue;
+                }
                 leaderboardToList.add(
                         new LeaderboardGlobalTrackEntry(
                                 getArtistAndTrackbyTrackIdDto.artistName(),
@@ -211,7 +221,14 @@ public class LeaderboardService {
                     log.warn("Value or score is null in LeaderboardService getTopGlobalArtists");
                     continue;
                 }
-                String artistName = catalogApi.getArtistNameById(Long.parseLong((String) value));
+                String artistName;
+                try{
+                    artistName = catalogApi.getArtistNameById(Long.parseLong((String) value));
+                } catch(ArtistNotFoundException e){
+                    log.warn("Artist {} referenced in global leaderboard no longer exists, skipping", value);
+                    continue;
+                }
+
                 leaderboardToList.add(
                         new LeaderboardGlobalArtistEntry(
                                 artistName,
@@ -223,11 +240,22 @@ public class LeaderboardService {
             }
         }
 
-        Long totalElements = redisTemplate.opsForZSet().zCard("leaderboard:global:tracks");
+        Long totalElements = redisTemplate.opsForZSet().zCard("leaderboard:global:artists");
         totalElements = totalElements == null ? 0L : totalElements;
 
         Page<LeaderboardGlobalArtistEntry> p = new PageImpl<>(leaderboardToList, page, totalElements);
         return new CustomPageResponse<>(p);
+    }
+
+    public void removeDeletedArtistFromLeaderboards(ArtistDeletedEvent event) {
+        redisTemplate.delete(artistKey(event.id()));
+        redisTemplate.delete(artistTopTracksKey(event.id()));
+        redisTemplate.opsForZSet().remove("leaderboard:global:artists", String.valueOf(event.id()));
+    }
+
+    public void removeDeletedTrackFromLeaderboards(TrackDeletedEvent event) {
+        redisTemplate.delete(trackKey(event.trackId()));
+        redisTemplate.opsForZSet().remove("leaderboard:global:tracks", String.valueOf(event.trackId()));
     }
 
 
