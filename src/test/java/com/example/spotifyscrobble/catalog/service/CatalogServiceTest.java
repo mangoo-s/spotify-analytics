@@ -42,7 +42,7 @@ public class CatalogServiceTest {
 
     @Test
     void createArtist_ThrowsExceptionIfArtistDoesNotExist(){
-        when(artistRepo.existsBySpotifyId("test")).thenReturn(true);
+        when(artistRepo.existsBySpotifyIdAndDeletedAtIsNull("test")).thenReturn(true);
         assertThrows(ArtistAlreadyExists.class, () -> catalogService.createArtist(new ArtistCreatedRequest("Bladee", "test")));
         verify(artistRepo, never()).save(any());
 
@@ -50,7 +50,7 @@ public class CatalogServiceTest {
 
     @Test
     void createArtist_ArtistGetsCreatedWhenItDoesntExist(){
-        when(artistRepo.existsBySpotifyId("test")).thenReturn(false);
+        when(artistRepo.existsBySpotifyIdAndDeletedAtIsNull("test")).thenReturn(false);
         when(artistRepo.save(any(ArtistEntity.class))).thenAnswer(InvocationOnMock -> InvocationOnMock.getArgument(0));
 
         catalogService.createArtist(new ArtistCreatedRequest("Bladee", "test"));
@@ -64,7 +64,7 @@ public class CatalogServiceTest {
 
     @Test
     void createArtist_returnsCorrectResponse(){
-        when(artistRepo.existsBySpotifyId("test")).thenReturn(false);
+        when(artistRepo.existsBySpotifyIdAndDeletedAtIsNull("test")).thenReturn(false);
         when(artistRepo.save(any(ArtistEntity.class))).thenAnswer(InvocationOnMock -> InvocationOnMock.getArgument(0));
 
         ArtistCreatedResponse response = catalogService.createArtist(new ArtistCreatedRequest("Bladee", "test"));
@@ -76,7 +76,7 @@ public class CatalogServiceTest {
 
     @Test
     void createArtist_CreateArtistPublishesEvent(){
-        when(artistRepo.existsBySpotifyId("test")).thenReturn(false);
+        when(artistRepo.existsBySpotifyIdAndDeletedAtIsNull("test")).thenReturn(false);
         when(artistRepo.save(any(ArtistEntity.class))).thenAnswer(InvocationOnMock -> InvocationOnMock.getArgument(0));
 
         catalogService.createArtist(new ArtistCreatedRequest("Bladee", "test"));
@@ -90,7 +90,7 @@ public class CatalogServiceTest {
 
     @Test
     void createArtist_EnsureEventIsNotPublishedWhenArtistExists(){
-        when(artistRepo.existsBySpotifyId("test")).thenReturn(true);
+        when(artistRepo.existsBySpotifyIdAndDeletedAtIsNull("test")).thenReturn(true);
         assertThrows(ArtistAlreadyExists.class, () -> catalogService.createArtist(new ArtistCreatedRequest("Bladee", "test")));
 
         verify(events, never()).publishEvent(any());
@@ -99,20 +99,20 @@ public class CatalogServiceTest {
     @Test
     void createTrack_EnsureTrackDoesNotGetCreatedIfArtistDoesNotExist(){
         TrackCreatedRequest req = new TrackCreatedRequest("unreal", "test", "test", 1L);
-        when(artistRepo.findBySpotifyId("test")).thenReturn(Optional.empty());
+        when(artistRepo.findBySpotifyIdAndDeletedAtIsNull("test")).thenReturn(Optional.empty());
         assertThrows(ArtistNotFoundException.class, () -> catalogService.createTrack(req));
 
         verify(trackRepo, never()).save(any());
-        verify(trackRepo, never()).existsBySpotifyId(any());
+        verify(trackRepo, never()).existsBySpotifyIdAndDeletedAtIsNull(any());
     }
 
     @Test
     void createTrack_EnsureTrackGetsCreatedWhenArtistExistsAndTrackDoesNotExist(){
         TrackCreatedRequest req = new TrackCreatedRequest("unreal", "test", "test", 1L);
         ArtistEntity artist = new ArtistEntity("Bladee", "test");
-        when(artistRepo.findBySpotifyId("test")).thenReturn(Optional.of(artist));
+        when(artistRepo.findBySpotifyIdAndDeletedAtIsNull("test")).thenReturn(Optional.of(artist));
         when(trackRepo.save(any(TrackEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(trackRepo.existsBySpotifyId("test")).thenReturn(false);
+        when(trackRepo.existsBySpotifyIdAndDeletedAtIsNull("test")).thenReturn(false);
 
         TrackCreatedResponse res = catalogService.createTrack(req);
 
@@ -128,10 +128,10 @@ public class CatalogServiceTest {
         TrackCreatedRequest req = new TrackCreatedRequest("unreal", "test", "test", 1L);
         ArtistEntity artist = new ArtistEntity("Bladee", "test");
 
-        when(artistRepo.findBySpotifyId("test")).thenReturn(Optional.of(artist));
-        when(trackRepo.existsBySpotifyId("test")).thenReturn(true);
+        when(artistRepo.findBySpotifyIdAndDeletedAtIsNull("test")).thenReturn(Optional.of(artist));
+        when(trackRepo.existsBySpotifyIdAndDeletedAtIsNull("test")).thenReturn(true);
 
-        assertThrows(TrackNotFoundException.class, () -> catalogService.createTrack(req));
+        assertThrows(TrackAlreadyExistsException.class, () -> catalogService.createTrack(req));
 
         verify(trackRepo, never()).save(any());
     }
@@ -140,8 +140,8 @@ public class CatalogServiceTest {
     void createTrack_EnsureTrackEventIsPublishedWhenTrackGetsCreated(){
         ArtistEntity artist = new ArtistEntity("Bladee", "test1");
         TrackCreatedRequest req = new TrackCreatedRequest("unreal", "test", "test1", 1L);
-        when(artistRepo.findBySpotifyId("test1")).thenReturn(Optional.of(artist));
-        when(trackRepo.existsBySpotifyId("test")).thenReturn(false);
+        when(artistRepo.findBySpotifyIdAndDeletedAtIsNull("test1")).thenReturn(Optional.of(artist));
+        when(trackRepo.existsBySpotifyIdAndDeletedAtIsNull("test")).thenReturn(false);
         when(trackRepo.save(any())).thenAnswer(Invocation -> Invocation.getArgument(0));
 
         TrackCreatedResponse response = catalogService.createTrack(req);
@@ -156,9 +156,8 @@ public class CatalogServiceTest {
 
     @Test
     void createTrack_EnsureTrackEventIsNotPublishedWhenArtistDoesntExist(){
-        ArtistEntity artist = new ArtistEntity("Bladee", "test1");
         TrackCreatedRequest req = new TrackCreatedRequest("unreal", "test", "test1", 1L);
-        when(artistRepo.findBySpotifyId(any())).thenReturn(Optional.empty());
+        when(artistRepo.findBySpotifyIdAndDeletedAtIsNull(any())).thenReturn(Optional.empty());
         assertThrows(ArtistNotFoundException.class, () -> catalogService.createTrack(req));
 
         verify(events, never()).publishEvent(any());
@@ -169,8 +168,8 @@ public class CatalogServiceTest {
         ArtistEntity artist = new ArtistEntity("Bladee", "test1");
         TrackCreatedRequest req = new TrackCreatedRequest("unreal", "test", "test1", 1L);
 
-        when(artistRepo.findBySpotifyId("test1")).thenReturn(Optional.of(artist));
-        when(trackRepo.existsBySpotifyId("test")).thenReturn(true);
+        when(artistRepo.findBySpotifyIdAndDeletedAtIsNull("test1")).thenReturn(Optional.of(artist));
+        when(trackRepo.existsBySpotifyIdAndDeletedAtIsNull("test")).thenReturn(true);
 
         assertThrows(TrackAlreadyExistsException.class, () -> catalogService.createTrack(req));
 
@@ -181,7 +180,7 @@ public class CatalogServiceTest {
     void getArtistAndTrackByTrackId_verifyIfCorrectResponseIsReturned(){
         ArtistEntity artist = new ArtistEntity("Bladee", "test");
         TrackEntity track = new TrackEntity("spotifyId", artist, "unreal", 1L);
-        when(trackRepo.findById(1L)).thenReturn(Optional.of(track));
+        when(trackRepo.findByTrackIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(track));
 
         GetArtistAndTrackbyTrackIdDto res = catalogService.getArtistAndTrackByTrackId(1L);
 
@@ -191,7 +190,7 @@ public class CatalogServiceTest {
 
     @Test
     void getArtistAndTrackByTrackId_throwsExceptionWhenTrackNotFound(){
-        when(trackRepo.findById(1L)).thenReturn(Optional.empty());
+        when(trackRepo.findByTrackIdAndDeletedAtIsNull(1L)).thenReturn(Optional.empty());
 
         assertThrows(TrackNotFoundException.class, () -> catalogService.getArtistAndTrackByTrackId(1L));
     }
@@ -199,7 +198,7 @@ public class CatalogServiceTest {
     @Test
     void getArtistNameById_verifyThatNameIsReturnedIfArtistExists(){
         ArtistEntity artist = new ArtistEntity("Bladee", "spotifyId");
-        when(artistRepo.findById(1L)).thenReturn(Optional.of(artist));
+        when(artistRepo.findByArtistIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(artist));
 
         String res = catalogService.getArtistNameById(1L);
 
@@ -208,7 +207,7 @@ public class CatalogServiceTest {
 
     @Test
     void getArtistNameById_throwsExceptionWhenArtistIsNotFound(){
-        when(artistRepo.findById(1L)).thenReturn(Optional.empty());
+        when(artistRepo.findByArtistIdAndDeletedAtIsNull(1L)).thenReturn(Optional.empty());
 
         assertThrows(ArtistNotFoundException.class, () -> catalogService.getArtistNameById(1L));
     }
@@ -216,7 +215,7 @@ public class CatalogServiceTest {
     @Test
     void getArtist_ReturnsArtistWhenArtistExists(){
         ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
-        when(artistRepo.findById(1L)).thenReturn(Optional.of(artist));
+        when(artistRepo.findByArtistIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(artist));
 
         GetArtistResponse response = catalogService.getArtist(1L);
 
@@ -226,7 +225,7 @@ public class CatalogServiceTest {
 
     @Test
     void getArtist_ThrowsErrorWhenArtistDoesntExist(){
-        when(artistRepo.findById(1L)).thenThrow(new ArtistNotFoundException("This artist does not exist"));
+        when(artistRepo.findByArtistIdAndDeletedAtIsNull(1L)).thenReturn(Optional.empty());
 
         assertThrows(ArtistNotFoundException.class, () -> catalogService.getArtist(1L));
 
@@ -236,7 +235,7 @@ public class CatalogServiceTest {
     void getTrack_ReturnsTrackWhenTrackExists(){
         ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
         TrackEntity track = new TrackEntity("trackSpotifyId", artist, "title", 3600L);
-        when(trackRepo.findById(1L)).thenReturn(Optional.of(track));
+        when(trackRepo.findByTrackIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(track));
 
         GetTrackResponse response = catalogService.getTrack(1L);
 
@@ -249,46 +248,57 @@ public class CatalogServiceTest {
 
     @Test
     void deleteArtist_DeletesArtistWhenItExistsAndPublishesEvent(){
-        when(artistRepo.existsById(1L)).thenReturn(true);
+        ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
+        when(artistRepo.findByArtistIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(artist));
 
         catalogService.deleteArtist(1L);
 
         ArgumentCaptor<ArtistDeletedEvent> captor = ArgumentCaptor.forClass(ArtistDeletedEvent.class);
-        verify(artistRepo, times(1)).deleteById(1L);
+        verify(artistRepo, times(1)).save(artist);
         verify(events).publishEvent(captor.capture());
         assertThat(captor.getValue().id()).isEqualTo(1L);
+        assertThat(artist.getDeletedAt()).isNotNull();
     }
 
     @Test
     void deleteArtist_DoesNotDeleteArtistWhenItDoesNotExist(){
-        when(artistRepo.existsById(1L)).thenReturn(false);
+        ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
+        when(artistRepo.findByArtistIdAndDeletedAtIsNull(1L)).thenReturn(Optional.empty());
 
         assertThrows(ArtistNotFoundException.class, () -> catalogService.deleteArtist(1L));
 
-        verify(artistRepo, never()).deleteById(any());
+        verify(artistRepo, never()).save(any());
         verify(events, never()).publishEvent(any());
+        assertThat(artist.getDeletedAt()).isNull();
     }
 
     @Test
     void deleteTrack_DeletesTrackWhenItExistsAndPublishesEvent(){
-        when(trackRepo.existsById(1L)).thenReturn(true);
+        ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
+        TrackEntity track = new TrackEntity("trackSpotifyId", artist, "title", 3600L);
+        when(trackRepo.findByTrackIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(track));
 
         catalogService.deleteTrack(1L);
+
         ArgumentCaptor<TrackDeletedEvent> captor = ArgumentCaptor.forClass(TrackDeletedEvent.class);
-        verify(trackRepo, times(1)).deleteById(1L);
+        verify(trackRepo, times(1)).save(track);
         verify(events).publishEvent(captor.capture());
         assertThat(captor.getValue().trackId()).isEqualTo(1L);
+        assertThat(track.getDeletedAt()).isNotNull();
 
     }
 
     @Test
     void deleteTrack_DoesNotDeleteTrackWhenTrackDoesNotExist(){
-        when(trackRepo.existsById(1L)).thenReturn(false);
+        ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
+        TrackEntity track = new TrackEntity("trackSpotifyId", artist, "title", 3600L);
+        when(trackRepo.findByTrackIdAndDeletedAtIsNull(1L)).thenReturn(Optional.empty());
 
         assertThrows(TrackNotFoundException.class, () -> catalogService.deleteTrack(1L));
 
-        verify(trackRepo, never()).deleteById(any());
+        verify(trackRepo, never()).save(any());
         verify(events, never()).publishEvent(any());
+        assertThat(track.getDeletedAt()).isNull();
     }
 
     @Test
@@ -296,8 +306,8 @@ public class CatalogServiceTest {
         UpdateArtistRequest request = new UpdateArtistRequest("updatedArtist", "updatedArtistSpotifyId");
         ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
 
-        when(artistRepo.findById(1L)).thenReturn(Optional.of(artist));
-        when(artistRepo.existsBySpotifyId("updatedArtistSpotifyId")).thenReturn(false);
+        when(artistRepo.findByArtistIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(artist));
+        when(artistRepo.existsBySpotifyIdAndDeletedAtIsNull("updatedArtistSpotifyId")).thenReturn(false);
 
         catalogService.updateArtist(1L, request);
 
@@ -312,8 +322,8 @@ public class CatalogServiceTest {
         UpdateArtistRequest request = new UpdateArtistRequest("", "updatedArtistSpotifyId");
         ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
 
-        when(artistRepo.findById(1L)).thenReturn(Optional.of(artist));
-        when(artistRepo.existsBySpotifyId("updatedArtistSpotifyId")).thenReturn(false);
+        when(artistRepo.findByArtistIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(artist));
+        when(artistRepo.existsBySpotifyIdAndDeletedAtIsNull("updatedArtistSpotifyId")).thenReturn(false);
 
         catalogService.updateArtist(1L, request);
 
@@ -328,7 +338,7 @@ public class CatalogServiceTest {
         UpdateArtistRequest request = new UpdateArtistRequest("", "");
         ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
 
-        when(artistRepo.findById(1L)).thenReturn(Optional.of(artist));
+        when(artistRepo.findByArtistIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(artist));
 
         catalogService.updateArtist(1L, request);
 
@@ -342,8 +352,8 @@ public class CatalogServiceTest {
         UpdateArtistRequest request = new UpdateArtistRequest("", "artistSpotifyId");
         ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
 
-        when(artistRepo.findById(1L)).thenReturn(Optional.of(artist));
-        when(artistRepo.existsBySpotifyId("artistSpotifyId")).thenThrow(new ArtistAlreadyExists("An artist with this spotifyId already exists"));
+        when(artistRepo.findByArtistIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(artist));
+        when(artistRepo.existsBySpotifyIdAndDeletedAtIsNull("artistSpotifyId")).thenReturn(true);
 
         assertThrows(ArtistAlreadyExists.class, () -> catalogService.updateArtist(1L, request));
 
@@ -357,8 +367,8 @@ public class CatalogServiceTest {
         ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
         TrackEntity track = new TrackEntity("trackSpotifyId", artist, "title", 3600L);
 
-        when(trackRepo.findById(1L)).thenReturn(Optional.of(track));
-        when(trackRepo.existsBySpotifyId("updatedTrackSpotifyId")).thenReturn(false);
+        when(trackRepo.findByTrackIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(track));
+        when(trackRepo.existsBySpotifyIdAndDeletedAtIsNull("updatedTrackSpotifyId")).thenReturn(false);
 
         catalogService.updateTrack(1L, request);
 
@@ -376,8 +386,8 @@ public class CatalogServiceTest {
         ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
         TrackEntity track = new TrackEntity("trackSpotifyId", artist, "title", 3600L);
 
-        when(trackRepo.findById(1L)).thenReturn(Optional.of(track));
-        when(trackRepo.existsBySpotifyId("updatedTrackSpotifyId")).thenReturn(false);
+        when(trackRepo.findByTrackIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(track));
+        when(trackRepo.existsBySpotifyIdAndDeletedAtIsNull("updatedTrackSpotifyId")).thenReturn(false);
 
         catalogService.updateTrack(1L, request);
 
@@ -394,8 +404,8 @@ public class CatalogServiceTest {
         ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
         TrackEntity track = new TrackEntity("trackSpotifyId", artist, "title", 3600L);
 
-        when(trackRepo.findById(1L)).thenReturn(Optional.of(track));
-        when(trackRepo.existsBySpotifyId("updatedTrackSpotifyId")).thenReturn(true);
+        when(trackRepo.findByTrackIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(track));
+        when(trackRepo.existsBySpotifyIdAndDeletedAtIsNull("updatedTrackSpotifyId")).thenReturn(true);
 
         assertThrows(TrackAlreadyExistsException.class, () -> catalogService.updateTrack(1L, request));
 
@@ -413,7 +423,7 @@ public class CatalogServiceTest {
         ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
         TrackEntity track = new TrackEntity("trackSpotifyId", artist, "title", 3600L);
 
-        when(trackRepo.findById(1L)).thenReturn(Optional.of(track));
+        when(trackRepo.findByTrackIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(track));
 
         catalogService.updateTrack(1L, request);
 
