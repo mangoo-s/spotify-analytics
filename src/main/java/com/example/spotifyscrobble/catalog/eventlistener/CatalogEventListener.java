@@ -27,11 +27,11 @@ public class CatalogEventListener {
     @ApplicationModuleListener
     public void onTrackListenedEvent(TrackListenedEvent event){
         log.info("TrackListenedEvent has been received by StatisticsEventListener.");
-        ArtistEntity artist = artistRepo.findBySpotifyId(event.spotifyArtistId()).orElseGet(
+        ArtistEntity artist = artistRepo.findBySpotifyIdAndDeletedAtIsNull(event.spotifyArtistId()).orElseGet(
                 () -> artistRepo.save(new ArtistEntity(event.artistName(), event.spotifyArtistId()))
         );
 
-        TrackEntity track = trackRepo.findBySpotifyId(event.spotifyTrackId()).orElseGet(
+        TrackEntity track = trackRepo.findBySpotifyIdAndDeletedAtIsNull(event.spotifyTrackId()).orElseGet(
                 () -> trackRepo.save(new TrackEntity(event.spotifyTrackId(), artist, event.trackName(), event.duration()))
         );
         log.info("TrackListenedEvent has been Completed by StatisticsEventListener. Now publishing CatalogEntriesResolvedEvent.");
