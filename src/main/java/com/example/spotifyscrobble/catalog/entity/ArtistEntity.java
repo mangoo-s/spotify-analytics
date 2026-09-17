@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.util.Objects;
 
 @Entity
@@ -24,6 +25,9 @@ public class ArtistEntity {
     @Column(unique = true)
     @Setter
     private String spotifyId;
+
+    @Setter
+    private Instant deletedAt;
 
     protected ArtistEntity() {}
 
