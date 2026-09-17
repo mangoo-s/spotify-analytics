@@ -1,4 +1,4 @@
-package com.example.spotifyscrobble.users.service.components;
+package com.example.spotifyscrobble.users.components;
 
 import com.example.spotifyscrobble.users.components.SpotifyApiClient;
 import com.example.spotifyscrobble.users.dto.*;

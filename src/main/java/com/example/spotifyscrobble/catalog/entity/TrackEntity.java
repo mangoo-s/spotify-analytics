@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
+
 @Entity
 @Table(name = "tracks")
 @Getter
@@ -19,7 +21,7 @@ public class TrackEntity {
     @Setter
     private String spotifyId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "artist_id")
     private ArtistEntity artist;
 
@@ -30,6 +32,9 @@ public class TrackEntity {
     @NotNull
     @Setter
     private Long duration;
+
+    @Setter
+    private Instant deletedAt;
 
     protected TrackEntity() {}
 
