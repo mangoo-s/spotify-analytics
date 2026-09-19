@@ -17,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
@@ -50,42 +51,21 @@ public class CatalogServiceTest {
 
     @Test
     void createArtist_ArtistGetsCreatedWhenItDoesntExist(){
-        when(artistRepo.existsBySpotifyIdAndDeletedAtIsNull("test")).thenReturn(false);
-        when(artistRepo.save(any(ArtistEntity.class))).thenAnswer(InvocationOnMock -> InvocationOnMock.getArgument(0));
+        when(artistRepo.existsBySpotifyIdAndDeletedAtIsNull("artistSpotifyId")).thenReturn(false);
+        ArtistEntity artist = new ArtistEntity("artistName", "artistSpotifyId");
+        ReflectionTestUtils.setField(artist, "artistId", 1L);
+        when(artistRepo.save(any())).thenReturn(artist);
 
-        catalogService.createArtist(new ArtistCreatedRequest("Bladee", "test"));
+        catalogService.createArtist(new ArtistCreatedRequest("artistName", "artistSpotifyId"));
 
         ArgumentCaptor<ArtistEntity> captor = ArgumentCaptor.forClass(ArtistEntity.class);
+        ArgumentCaptor<ArtistCreatedEvent> captor1 = ArgumentCaptor.forClass(ArtistCreatedEvent.class);
         verify(artistRepo).save(captor.capture());
-        assertThat(captor.getValue().getSpotifyId()).isEqualTo("test");
-        assertThat(captor.getValue().getName()).isEqualTo("Bladee");
+        assertThat(captor.getValue().getSpotifyId()).isEqualTo("artistSpotifyId");
+        assertThat(captor.getValue().getName()).isEqualTo("artistName");
         verify(artistRepo, times(1)).save(any());
-    }
-
-    @Test
-    void createArtist_returnsCorrectResponse(){
-        when(artistRepo.existsBySpotifyIdAndDeletedAtIsNull("test")).thenReturn(false);
-        when(artistRepo.save(any(ArtistEntity.class))).thenAnswer(InvocationOnMock -> InvocationOnMock.getArgument(0));
-
-        ArtistCreatedResponse response = catalogService.createArtist(new ArtistCreatedRequest("Bladee", "test"));
-
-        assertThat(response.name()).isEqualTo("Bladee");
-        assertThat(response.spotifyId()).isEqualTo("test");
-
-    }
-
-    @Test
-    void createArtist_CreateArtistPublishesEvent(){
-        when(artistRepo.existsBySpotifyIdAndDeletedAtIsNull("test")).thenReturn(false);
-        when(artistRepo.save(any(ArtistEntity.class))).thenAnswer(InvocationOnMock -> InvocationOnMock.getArgument(0));
-
-        catalogService.createArtist(new ArtistCreatedRequest("Bladee", "test"));
-
-        ArgumentCaptor<ArtistCreatedEvent> captor = ArgumentCaptor.forClass(ArtistCreatedEvent.class);
-        verify(events).publishEvent(captor.capture());
-        assertThat(captor.getValue().artist().getName()).isEqualTo("Bladee");
-        assertThat(captor.getValue().artist().getSpotifyId()).isEqualTo("test");
-
+        verify(events, times(1)).publishEvent(captor1.capture());
+        assertThat(captor1.getValue().artistId()).isEqualTo(1L);
     }
 
     @Test
@@ -108,19 +88,21 @@ public class CatalogServiceTest {
 
     @Test
     void createTrack_EnsureTrackGetsCreatedWhenArtistExistsAndTrackDoesNotExist(){
-        TrackCreatedRequest req = new TrackCreatedRequest("unreal", "test", "test", 1L);
-        ArtistEntity artist = new ArtistEntity("Bladee", "test");
-        when(artistRepo.findBySpotifyIdAndDeletedAtIsNull("test")).thenReturn(Optional.of(artist));
-        when(trackRepo.save(any(TrackEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(trackRepo.existsBySpotifyIdAndDeletedAtIsNull("test")).thenReturn(false);
+        TrackCreatedRequest req = new TrackCreatedRequest("title", "trackSpotifyId", "artistSpotifyId", 1L);
+        ArtistEntity artist = new ArtistEntity("artistName", "artistSpotifyId");
+        TrackEntity track = new TrackEntity("trackSpotifyId", artist, "title", 3600L);
+        when(artistRepo.findBySpotifyIdAndDeletedAtIsNull("artistSpotifyId")).thenReturn(Optional.of(artist));
+        when(trackRepo.save(any())).thenReturn(track);
+        when(trackRepo.existsBySpotifyIdAndDeletedAtIsNull("trackSpotifyId")).thenReturn(false);
+        ReflectionTestUtils.setField(track, "trackId", 1L);
 
         TrackCreatedResponse res = catalogService.createTrack(req);
 
         verify(trackRepo).save(any());
-        assertThat(res.title()).isEqualTo("unreal");
-        assertThat(res.duration()).isEqualTo(1L);
-        assertThat(res.spotifyId()).isEqualTo("test");
-        assertThat(res.artist()).isEqualTo("Bladee");
+        assertThat(res.title()).isEqualTo("title");
+        assertThat(res.duration()).isEqualTo(3600L);
+        assertThat(res.spotifyId()).isEqualTo("trackSpotifyId");
+        assertThat(res.artistName()).isEqualTo("artistName");
     }
 
     @Test
@@ -140,18 +122,20 @@ public class CatalogServiceTest {
     void createTrack_EnsureTrackEventIsPublishedWhenTrackGetsCreated(){
         ArtistEntity artist = new ArtistEntity("Bladee", "test1");
         TrackCreatedRequest req = new TrackCreatedRequest("unreal", "test", "test1", 1L);
+        TrackEntity track = new TrackEntity("trackSpotifyId", artist, "unreal", 1L);
         when(artistRepo.findBySpotifyIdAndDeletedAtIsNull("test1")).thenReturn(Optional.of(artist));
         when(trackRepo.existsBySpotifyIdAndDeletedAtIsNull("test")).thenReturn(false);
-        when(trackRepo.save(any())).thenAnswer(Invocation -> Invocation.getArgument(0));
+        when(trackRepo.save(any())).thenReturn(track);
+        ReflectionTestUtils.setField(track, "trackId", 1L);
+
 
         TrackCreatedResponse response = catalogService.createTrack(req);
         ArgumentCaptor<TrackCreatedEvent> captor = ArgumentCaptor.forClass(TrackCreatedEvent.class);
 
         verify(events).publishEvent(captor.capture());
-        assertThat(captor.getValue().track().getTitle()).isEqualTo("unreal");
-        assertThat(captor.getValue().track().getSpotifyId()).isEqualTo("test");
-        assertThat(captor.getValue().track().getArtist().getName()).isEqualTo("Bladee");
-        assertThat(captor.getValue().track().getArtist().getSpotifyId()).isEqualTo("test1");
+        assertThat(captor.getValue().title()).isEqualTo("unreal");
+        assertThat(captor.getValue().spotifyId()).isEqualTo("trackSpotifyId");
+        assertThat(captor.getValue().trackId()).isEqualTo(1L);
     }
 
     @Test
