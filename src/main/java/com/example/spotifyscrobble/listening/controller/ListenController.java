@@ -2,7 +2,6 @@ package com.example.spotifyscrobble.listening.controller;
 
 import com.example.spotifyscrobble.listening.responses.ListeningHistoryResponse;
 import com.example.spotifyscrobble.listening.services.ListeningService;
-import com.example.spotifyscrobble.listening.TrackListenedEvent;
 import com.example.spotifyscrobble.shared.CustomPageResponse;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
