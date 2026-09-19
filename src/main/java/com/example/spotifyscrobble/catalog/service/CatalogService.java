@@ -39,7 +39,7 @@ public class CatalogService implements CatalogApi {
         ArtistEntity artist = new ArtistEntity(artistCreatedRequest.name(), artistCreatedRequest.spotifyId());
         log.info("Created new artist: {} with spotifyId: {}", artistCreatedRequest.name(), artistCreatedRequest.spotifyId());
         artist = artistRepo.save(artist);
-        events.publishEvent(new ArtistCreatedEvent(artist));
+        events.publishEvent(new ArtistCreatedEvent(artist.getArtistId(), artist.getName(), artist.getSpotifyId()));
         return new ArtistCreatedResponse(artist.getSpotifyId(), artist.getName());
     }
 
@@ -50,7 +50,7 @@ public class CatalogService implements CatalogApi {
         TrackEntity track = new TrackEntity(trackCreatedRequest.spotifyId(), artist, trackCreatedRequest.title(), trackCreatedRequest.duration());
         track = trackRepo.save(track);
         log.info("Created new track with title: {} and artistSpotifyId: {} and trackSpotifyId: {}", trackCreatedRequest.title(), artist.getSpotifyId(), trackCreatedRequest.spotifyId());
-        events.publishEvent(new TrackCreatedEvent(track));
+        events.publishEvent(new TrackCreatedEvent(track.getTrackId(), track.getTitle(), track.getSpotifyId()));
         return new TrackCreatedResponse(track.getSpotifyId(), track.getTitle(), artist.getName(), track.getDuration());
     }
 
