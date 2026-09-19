@@ -50,6 +50,7 @@ jobs:
         SPRING_DATASOURCE_PASSWORD: password
         SPOTIFY_CLIENT_ID: test-client-id
         SPOTIFY_CLIENT_SECRET: test-client-secret
+        JWT_KEY_URI: test-jwt-key-uri
       run: ./mvnw -B package --file pom.xml
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
