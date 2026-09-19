@@ -36,12 +36,6 @@ public class ListeningServiceTest {
     @Mock
     private ListeningHistoryRepository listeningHistoryRepo;
 
-    @Mock
-    private ApplicationEventPublisher events;
-
-    @Mock
-    private UsersApi usersApi;
-
     @InjectMocks
     private ListeningService service;
 
@@ -67,7 +61,6 @@ public class ListeningServiceTest {
         assertThat(saved.getSpotifyArtistId()).isEqualTo("artistSpotifyId");
         assertThat(saved.getDuration()).isEqualTo(1L);
 
-        verify(events).publishEvent(event);
     }
 
     @Test
@@ -101,7 +94,7 @@ public class ListeningServiceTest {
     }
 
     @Test
-    void getUserListeningHistory_ReturnsNoContentWhenUserHasNoPlays(){
+    void getUserListeningHistory_ReturnsNoContentWhenUserHasNoPlaysOrDoesntExist(){
         String username = "testUser";
         Pageable pageable = PageRequest.of(0, 10);
         when(listeningHistoryRepo.findAllByUsername(username, pageable)).thenReturn(Page.empty());
@@ -111,13 +104,4 @@ public class ListeningServiceTest {
         assertThat(res.content().isEmpty()).isTrue();
     }
 
-    @Test
-    void getUserListeningHistory_CheckIfExceptionIsThrownWhenUserDoesNotExistAndNoPageableIsReturned(){
-        when(usersApi.checkIfUserExistsByUsername(any())).thenReturn(false);
-        Pageable pageable = PageRequest.of(0, 10);
-
-        assertThrows(UsernameNotFoundException.class, () -> service.getUserListeningHistory("testUser", pageable));
-
-        verify(listeningHistoryRepo, never()).findAllByUsername(any(), any());
-    }
 }
