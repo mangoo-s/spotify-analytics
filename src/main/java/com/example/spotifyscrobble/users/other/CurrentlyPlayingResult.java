@@ -2,7 +2,7 @@ package com.example.spotifyscrobble.users.other;
 
 import com.example.spotifyscrobble.users.dto.GetRecentlyPlayedTracksResponse;
 import com.example.spotifyscrobble.users.dto.Items;
-import net.minidev.json.annotate.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.List;
 
