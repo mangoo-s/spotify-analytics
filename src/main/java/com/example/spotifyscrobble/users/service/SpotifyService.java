@@ -91,9 +91,11 @@ public class SpotifyService {
                         spotifyConnectionRepo.save(user);
                     }
                 }
-                case TRANSIENT_FAILURE -> { }
+                case TRANSIENT_FAILURE -> {
+                    log.warn("Transient failure for user {}", user.getUserId());
+                }
                 case AUTH_FAILED -> {
-                    System.out.println("refresh token dont exist so need to log in");
+                    log.warn("Auth failed for user {}", user.getUserId());
                 }
             }
 

@@ -75,28 +75,5 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(test);
     }
 
-    @GetMapping("/spotify/connect")
-    public void connectSpotify(@RequestParam("token") String token, HttpServletResponse response) throws IOException {
-        Jwt jwt = jwtDecoder.decode(token);
-        String state = jwt.getSubject();
-
-        String authorizeUri = UriComponentsBuilder
-                    .fromUriString("https://accounts.spotify.com/authorize")
-                    .queryParam("client_id", clientId)
-                    .queryParam("scope", "user-read-currently-playing,user-read-recently-played")
-                    .queryParam("redirect_uri", "http://127.0.0.1:8080/callback")
-                    .queryParam("state", state)
-                    .queryParam("response_type", "code")
-                    .build()
-                    .toUriString();
-
-        response.sendRedirect(authorizeUri);
-    }
-
-    @GetMapping("/callback")
-    public ResponseEntity<?> spotifyCallback(@RequestParam("code") String code, @RequestParam("state") String state){
-        apiClient.spotifyCallback(code, state);
-        return ResponseEntity.status(HttpStatus.OK).body("Spotify connected");
-    }
 
 }

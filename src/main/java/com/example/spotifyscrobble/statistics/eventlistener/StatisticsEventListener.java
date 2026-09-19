@@ -1,6 +1,7 @@
 package com.example.spotifyscrobble.statistics.eventlistener;
 
 import com.example.spotifyscrobble.catalog.ArtistCreatedEvent;
+import com.example.spotifyscrobble.catalog.ArtistDeletedEvent;
 import com.example.spotifyscrobble.catalog.CatalogEntriesResolvedEvent;
 import com.example.spotifyscrobble.catalog.TrackCreatedEvent;
 import com.example.spotifyscrobble.statistics.services.StatisticsService;
@@ -37,5 +38,10 @@ public class StatisticsEventListener {
         log.info("TrackCreatedEvent has been received by StatisticsEventListener");
         statsService.createTrackStat(event);
         log.info("TrackCreatedEvent has been completed by StatisticsEventListener");
+    }
+
+    @ApplicationModuleListener
+    public void onArtistDeletedEvent(ArtistDeletedEvent event){
+        log.info("ArtistDeletedEvent has been received by StatisticsEventListener");
     }
 }

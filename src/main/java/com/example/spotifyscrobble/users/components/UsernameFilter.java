@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
+import org.springframework.util.PathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -21,17 +22,25 @@ public class UsernameFilter extends OncePerRequestFilter {
 
     private final UserService userService;
     private static final Set<String> EXEMPT_PATHS = Set.of(
-            "/profile/me", "/profile/username"
+            "/user/profile/me", "/user/profile/username"
     );
+    private final PathMatcher pathMatcher;
 
-    public UsernameFilter(UserService userService) {
+    public UsernameFilter(UserService userService, PathMatcher pathMatcher) {
         this.userService = userService;
+        this.pathMatcher = pathMatcher;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException{
+        String path = request.getServletPath();
+        return EXEMPT_PATHS.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof Jwt jwt && !EXEMPT_PATHS.contains(request.getRequestURI())){
+        if (auth != null && auth.getPrincipal() instanceof Jwt jwt){
             UserEntity user = userService.createUserProfile(jwt);
             if(!user.isComplete()){
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);

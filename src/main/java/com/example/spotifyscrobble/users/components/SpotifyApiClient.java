@@ -67,7 +67,7 @@ public class SpotifyApiClient {
         }catch(HttpClientErrorException.TooManyRequests e){
             log.warn("Rate limit reached");
             return CurrentlyPlayingResult.transientFailure();
-        }catch(RestClientException e){
+        }catch(ResourceAccessException e){
             log.warn("Spotify failed for user {}", user.getUserId(), e);
             return CurrentlyPlayingResult.transientFailure();
         }
@@ -105,7 +105,7 @@ public class SpotifyApiClient {
     }
 
     public void spotifyCallback(String code, String state){ //Needs error handling too
-
+        System.out.println("Hello");
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "authorization_code");
         body.add("code", code);

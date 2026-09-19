@@ -19,6 +19,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.util.PathMatcher;
 
 import java.util.List;
 import java.util.Map;
@@ -32,9 +33,11 @@ public class SecurityConfig {
     private String keyUri;
 
     private final UserService userService;
+    private final PathMatcher pathMatcher;
 
-    public SecurityConfig(UserService userService) {
+    public SecurityConfig(UserService userService, PathMatcher pathMatcher) {
         this.userService = userService;
+        this.pathMatcher = pathMatcher;
     }
 
     @Bean
@@ -48,7 +51,7 @@ public class SecurityConfig {
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(Customizer.withDefaults())
                 )
-                .addFilterAfter(new UsernameFilter(userService), BearerTokenAuthenticationFilter.class);
+                .addFilterAfter(new UsernameFilter(userService, pathMatcher), BearerTokenAuthenticationFilter.class);
         return http.build();
     }
 
