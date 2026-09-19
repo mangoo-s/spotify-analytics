@@ -3,6 +3,8 @@ package com.example.spotifyscrobble.catalog;
 import com.example.spotifyscrobble.catalog.entity.ArtistEntity;
 
 public record ArtistCreatedEvent(
-        ArtistEntity artist
+        long artistId,
+        String artistName,
+        String artistSpotifyId
 ) {
 }
