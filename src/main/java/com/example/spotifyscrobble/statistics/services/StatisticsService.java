@@ -60,17 +60,17 @@ public class StatisticsService {
     }
 
     public void createArtistStat(ArtistCreatedEvent event){
-        if(artistStatsRepo.existsById(event.artist().getArtistId())){
+        if(artistStatsRepo.existsById(event.artistId())){
             throw new ArtistAlreadyExistsInStatsException("This artist stats already exist.");
         }
-        artistStatsRepo.save(new ArtistStatsEntity(event.artist().getArtistId(), event.artist().getName()));
+        artistStatsRepo.save(new ArtistStatsEntity(event.artistId(), event.artistName()));
     }
 
     public void createTrackStat(TrackCreatedEvent event){
-        if(trackStatsRepository.existsById(event.track().getTrackId())){
+        if(trackStatsRepository.existsById(event.trackId())){
             throw new TrackStatAlreadyExists("This tracks stats already exist");
         }
-        trackStatsRepository.save(new TrackStatsEntity(event.track().getTrackId(), event.track().getTitle()));
+        trackStatsRepository.save(new TrackStatsEntity(event.trackId(), event.title()));
     }
 
     public CustomPageResponse<UserTopTracksResponse> getUsersTopTracks(String username, Pageable page){
