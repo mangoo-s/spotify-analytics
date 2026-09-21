@@ -1,6 +1,7 @@
 package com.example.spotifyscrobble.listening.services;
 
 import com.example.spotifyscrobble.listening.TrackListenedEvent;
+import com.example.spotifyscrobble.listening.components.ListeningHistorySpecifications;
 import com.example.spotifyscrobble.listening.entities.ListenEventEntity;
 import com.example.spotifyscrobble.listening.responses.ListeningHistoryResponse;
 import com.example.spotifyscrobble.listening.repositories.ListeningHistoryRepository;
@@ -9,10 +10,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -31,17 +34,23 @@ public class ListeningService {
         log.info("User {}'s track event is being published.", event.userId());
     }
 
-    public CustomPageResponse<ListeningHistoryResponse> getUserListeningHistory(String username, Pageable p){
+    public CustomPageResponse<ListeningHistoryResponse> getUserListeningHistory(String username, String spotifyArtistId, String spotifyTrackId, Instant startDate, Instant endDate, Pageable pageable){
+        Specification<ListenEventEntity> spec = Specification
+                .where(ListeningHistorySpecifications.hasUsername(username))
+                .and(ListeningHistorySpecifications.hasSpotifyArtistId(spotifyArtistId))
+                .and(ListeningHistorySpecifications.hasSpotifyTrackId(spotifyTrackId))
+                .and(ListeningHistorySpecifications.listenedAfter(startDate))
+                .and(ListeningHistorySpecifications.listenedBefore(endDate));
 
-        Page<ListeningHistoryResponse> result = listeningHistoryRepo.findAllByUsername(username, p)
-                .map(entity -> new ListeningHistoryResponse(
-                        entity.getArtistName(),
-                        entity.getTrackName(),
-                        entity.getSpotifyArtistId(),
-                        entity.getSpotifyTrackId(),
-                        entity.getPlayedAt()
-                        )
-                );
-        return new CustomPageResponse<>(result);
+        Page<ListenEventEntity> result = listeningHistoryRepo.findAll(spec, pageable);
+        return new CustomPageResponse<>(result.map(temp ->
+                new ListeningHistoryResponse(
+                        temp.getArtistName(),
+                        temp.getTrackName(),
+                        temp.getSpotifyArtistId(),
+                        temp.getSpotifyTrackId(),
+                        temp.getPlayedAt()
+                )
+        ));
     }
 }
