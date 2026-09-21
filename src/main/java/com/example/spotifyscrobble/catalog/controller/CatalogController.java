@@ -19,12 +19,14 @@ public class CatalogController {
     }
 
     @PostMapping("/artists")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ArtistCreatedResponse> createNewArtist(@RequestBody @Valid ArtistCreatedRequest artistCreatedRequest){
         ArtistCreatedResponse response = catalogService.createArtist(artistCreatedRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/tracks")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TrackCreatedResponse> createNewTrack(@Valid @RequestBody TrackCreatedRequest trackCreatedRequest){
         TrackCreatedResponse response = catalogService.createTrack(trackCreatedRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
