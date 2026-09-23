@@ -161,50 +161,15 @@ public class CatalogServiceTest {
     }
 
     @Test
-    void getArtistAndTrackByTrackId_verifyIfCorrectResponseIsReturned(){
-        ArtistEntity artist = new ArtistEntity("Bladee", "test");
-        TrackEntity track = new TrackEntity("spotifyId", artist, "unreal", 1L);
-        when(trackRepo.findByTrackIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(track));
-
-        GetArtistAndTrackbyTrackIdDto res = catalogService.getArtistAndTrackByTrackId(1L);
-
-        assertThat(res.artistName()).isEqualTo("Bladee");
-        assertThat(res.trackName()).isEqualTo("unreal");
-    }
-
-    @Test
-    void getArtistAndTrackByTrackId_throwsExceptionWhenTrackNotFound(){
-        when(trackRepo.findByTrackIdAndDeletedAtIsNull(1L)).thenReturn(Optional.empty());
-
-        assertThrows(TrackNotFoundException.class, () -> catalogService.getArtistAndTrackByTrackId(1L));
-    }
-
-    @Test
-    void getArtistNameById_verifyThatNameIsReturnedIfArtistExists(){
-        ArtistEntity artist = new ArtistEntity("Bladee", "spotifyId");
-        when(artistRepo.findByArtistIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(artist));
-
-        String res = catalogService.getArtistNameById(1L);
-
-        assertThat(res).isEqualTo("Bladee");
-    }
-
-    @Test
-    void getArtistNameById_throwsExceptionWhenArtistIsNotFound(){
-        when(artistRepo.findByArtistIdAndDeletedAtIsNull(1L)).thenReturn(Optional.empty());
-
-        assertThrows(ArtistNotFoundException.class, () -> catalogService.getArtistNameById(1L));
-    }
-
-    @Test
     void getArtist_ReturnsArtistWhenArtistExists(){
         ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
         when(artistRepo.findByArtistIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(artist));
+        ReflectionTestUtils.setField(artist, "artistId", 1L);
 
-        GetArtistResponse response = catalogService.getArtist(1L);
+        ArtistCacheView response = catalogService.getArtist(1L);
 
-        assertThat(response.name()).isEqualTo("artist");
-        assertThat(response.spotifyId()).isEqualTo("artistSpotifyId");
+        assertThat(response.artistName()).isEqualTo("artist");
+        assertThat(response.artistSpotifyId()).isEqualTo("artistSpotifyId");
     }
 
     @Test
@@ -220,12 +185,13 @@ public class CatalogServiceTest {
         ArtistEntity artist = new ArtistEntity("artist", "artistSpotifyId");
         TrackEntity track = new TrackEntity("trackSpotifyId", artist, "title", 3600L);
         when(trackRepo.findByTrackIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(track));
+        ReflectionTestUtils.setField(track, "trackId", 1L);
+        ReflectionTestUtils.setField(artist, "artistId", 1L);
 
-        GetTrackResponse response = catalogService.getTrack(1L);
+        TrackCacheView response = catalogService.getTrack(1L);
 
         assertThat(response.trackName()).isEqualTo("title");
-        assertThat(response.trackSpotifyId()).isEqualTo("trackSpotifyId");
-        assertThat(response.length()).isEqualTo(3600L);
+        assertThat(response.duration()).isEqualTo(3600L);
         assertThat(response.artistName()).isEqualTo("artist");
         assertThat(response.artistSpotifyId()).isEqualTo("artistSpotifyId");
     }

@@ -11,6 +11,7 @@ import com.example.spotifyscrobble.shared.ArtistNotFoundException;
 import com.example.spotifyscrobble.shared.TrackAlreadyExistsException;
 import com.example.spotifyscrobble.shared.TrackNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -21,7 +22,7 @@ import java.time.Instant;
 
 @Service
 @Slf4j
-public class CatalogService implements CatalogApi {
+public class CatalogService {
     private final ArtistRepository artistRepo;
     private final TrackRepository trackRepo;
     private final ApplicationEventPublisher events;
@@ -43,7 +44,7 @@ public class CatalogService implements CatalogApi {
         return new ArtistCreatedResponse(artist.getSpotifyId(), artist.getName());
     }
 
-    public TrackCreatedResponse createTrack(TrackCreatedRequest trackCreatedRequest){ //Still needs testing
+    public TrackCreatedResponse createTrack(TrackCreatedRequest trackCreatedRequest){
         ArtistEntity artist = artistRepo.findBySpotifyIdAndDeletedAtIsNull(trackCreatedRequest.artistSpotifyId()).orElseThrow(() -> new ArtistNotFoundException("Artist with spotifyId "+trackCreatedRequest.spotifyId()+" does not exist therefore the track could not be created. Please create an artist first and then create a track under that artist."));
         if(trackRepo.existsBySpotifyIdAndDeletedAtIsNull(trackCreatedRequest.spotifyId())){ throw new TrackAlreadyExistsException("This track already exists."); }
 
@@ -54,39 +55,26 @@ public class CatalogService implements CatalogApi {
         return new TrackCreatedResponse(track.getSpotifyId(), track.getTitle(), artist.getName(), track.getDuration());
     }
 
-    @Override
-    @Cacheable(value = "artistAndTrack", key = "#trackId")
-    public GetArtistAndTrackbyTrackIdDto getArtistAndTrackByTrackId(long trackId){
-        TrackEntity track = trackRepo.findByTrackIdAndDeletedAtIsNull(trackId).orElseThrow(() -> new TrackNotFoundException("This track does not exist."));
-        return new GetArtistAndTrackbyTrackIdDto(
-                track.getArtist().getName(),
-                track.getTitle()
-        );
-    }
-
-    @Override
-    @Cacheable(value = "artistName", key = "#artistID")
-    public String getArtistNameById(long artistID){
-        ArtistEntity artist = artistRepo.findByArtistIdAndDeletedAtIsNull(artistID).orElseThrow(() -> new ArtistNotFoundException("This artist does not exist"));
-        return artist.getName();
-    }
-
-    @Cacheable(value = "artist", key = "#id")
-    public GetArtistResponse getArtist(long id){
+    @Cacheable(value = "artistCache", key = "#id")
+    public ArtistCacheView getArtist(long id){
         ArtistEntity artist = artistRepo.findByArtistIdAndDeletedAtIsNull(id).orElseThrow(() -> new ArtistNotFoundException("This artist does not exist."));
-        return new GetArtistResponse(artist.getName(), artist.getSpotifyId());
+        return new ArtistCacheView(artist.getArtistId(), artist.getName(), artist.getSpotifyId());
     }
 
-    @Cacheable(value = "track", key = "#id")
-    public GetTrackResponse getTrack(long id){
+    @Cacheable(value = "trackCache", key = "#id")
+    public TrackCacheView getTrack(long id){
         TrackEntity track = trackRepo.findByTrackIdAndDeletedAtIsNull(id).orElseThrow(() -> new TrackNotFoundException("This track does not exist"));
-        return new GetTrackResponse(track.getTitle(), track.getArtist().getName(), track.getSpotifyId(), track.getArtist().getSpotifyId(), track.getDuration());
+        return new TrackCacheView(track.getTrackId(),
+                track.getTitle(), track.getSpotifyId(),
+                track.getDuration(),
+                track.getArtist().getName(),
+                track.getArtist().getSpotifyId(),
+                track.getArtist().getArtistId());
     }
 
     @Caching(
             evict = {
-                    @CacheEvict(value = "artist", key = "#id"),
-                    @CacheEvict(value = "artistName", key = "#id")
+                    @CacheEvict(value = "artistCache", key = "#id"),
             }
     )
     public void deleteArtist(long id){
@@ -99,8 +87,7 @@ public class CatalogService implements CatalogApi {
 
     @Caching(
             evict = {
-                    @CacheEvict(value = "artistAndTrack", key = "#id"),
-                    @CacheEvict(value = "track", key = "#id")
+                    @CacheEvict(value = "trackCache", key = "#id")
             }
     )
     public void deleteTrack(long id){
@@ -111,7 +98,7 @@ public class CatalogService implements CatalogApi {
         events.publishEvent(new TrackDeletedEvent(id));
     }
 
-    @CacheEvict(value = "artistName", key = "#id")
+    @CacheEvict(value = "artistCache", key = "#id")
     public void updateArtist(long id, UpdateArtistRequest updateArtistRequest){
         ArtistEntity artist = artistRepo.findByArtistIdAndDeletedAtIsNull(id).orElseThrow(() -> new ArtistNotFoundException("This artist does not exist"));
 
@@ -131,8 +118,7 @@ public class CatalogService implements CatalogApi {
 
     @Caching(
             evict = {
-                    @CacheEvict(value = "artistAndTrack", key = "#id"),
-                    @CacheEvict(value = "track", key = "#id")
+                    @CacheEvict(value = "trackCache", key = "#id")
             }
     )
     public void updateTrack(long id, UpdateTrackRequest updateTrackRequest){
