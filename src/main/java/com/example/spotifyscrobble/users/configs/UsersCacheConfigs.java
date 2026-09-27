@@ -19,9 +19,9 @@ public class UsersCacheConfigs {
                 .withCacheConfiguration("usernames", RedisCacheConfiguration.defaultCacheConfig()
                         .entryTtl(Duration.ofMinutes(10))
                         .disableCachingNullValues()
-                        .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(
-                                new StringRedisSerializer()
-                        ))
-                );
+                        .serializeKeysWith(RedisSerializationContext.SerializationPair
+                                .fromSerializer(new StringRedisSerializer()))
+                        .serializeValuesWith(RedisSerializationContext.SerializationPair
+                                .fromSerializer(new StringRedisSerializer())));
     }
 }
