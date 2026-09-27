@@ -12,6 +12,9 @@ import com.example.spotifyscrobble.shared.ArtistNotFoundException;
 import com.example.spotifyscrobble.shared.CustomPageResponse;
 import com.example.spotifyscrobble.shared.TrackNotFoundException;
 import com.example.spotifyscrobble.users.UsersApi;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -48,8 +51,13 @@ public class LeaderboardServiceTest {
     @Mock
     private ZSetOperations<String, Object> zSetOperations;
 
-    @InjectMocks
     LeaderboardService leaderboardService;
+
+    @BeforeEach
+    void setUp(){
+        MeterRegistry registry = new SimpleMeterRegistry();
+        leaderboardService = new LeaderboardService(redisTemplate, usersApi, catalogApi, registry);
+    }
 
     @Test
     void recordPlay_ExecutesPipelinedCommands(){
