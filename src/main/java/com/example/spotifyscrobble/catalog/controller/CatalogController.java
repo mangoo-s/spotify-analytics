@@ -1,5 +1,8 @@
 package com.example.spotifyscrobble.catalog.controller;
 
+import com.example.spotifyscrobble.catalog.GetArtistResponse;
+import com.example.spotifyscrobble.catalog.entity.ArtistEntity;
+import com.example.spotifyscrobble.catalog.entity.TrackEntity;
 import com.example.spotifyscrobble.catalog.internalDto.*;
 import com.example.spotifyscrobble.catalog.service.CatalogService;
 import jakarta.validation.Valid;
@@ -19,12 +22,14 @@ public class CatalogController {
     }
 
     @PostMapping("/artists")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ArtistCreatedResponse> createNewArtist(@RequestBody @Valid ArtistCreatedRequest artistCreatedRequest){
         ArtistCreatedResponse response = catalogService.createArtist(artistCreatedRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/tracks")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TrackCreatedResponse> createNewTrack(@Valid @RequestBody TrackCreatedRequest trackCreatedRequest){
         TrackCreatedResponse response = catalogService.createTrack(trackCreatedRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -32,14 +37,24 @@ public class CatalogController {
 
     @GetMapping("/artists/{id}")
     public ResponseEntity<GetArtistResponse> getArtist(@PathVariable long id){
-        return ResponseEntity.status(HttpStatus.OK).body(catalogService.getArtist(id));
+        ArtistCacheView artist = catalogService.getArtist(id);
+        return ResponseEntity.status(HttpStatus.OK).body(new GetArtistResponse(
+                artist.artistName(),
+                artist.artistSpotifyId()
+        ));
     }
 
 
     @GetMapping("/tracks/{id}")
     public ResponseEntity<GetTrackResponse> getTrack(@PathVariable long id){
-        System.out.println("hello");
-        return ResponseEntity.status(HttpStatus.OK).body(catalogService.getTrack(id));
+        TrackCacheView track = catalogService.getTrack(id);
+        return ResponseEntity.status(HttpStatus.OK).body(new GetTrackResponse(
+                track.trackName(),
+                track.artistName(),
+                track.trackSpotifyId(),
+                track.artistSpotifyId(),
+                track.duration()
+        ));
     }
 
     @DeleteMapping("artist/{id}")

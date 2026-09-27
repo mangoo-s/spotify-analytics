@@ -12,6 +12,8 @@ import com.example.spotifyscrobble.shared.ArtistNotFoundException;
 import com.example.spotifyscrobble.shared.CustomPageResponse;
 import com.example.spotifyscrobble.shared.TrackNotFoundException;
 import com.example.spotifyscrobble.users.UsersApi;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
@@ -34,11 +36,15 @@ public class LeaderboardService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final UsersApi usersApi;
     private final CatalogApi catalogApi;
+    private final Timer recordPlayTimer;
 
-    public LeaderboardService(RedisTemplate<String, Object> redisTemplate, UsersApi usersApi, CatalogApi catalogApi) {
+    public LeaderboardService(RedisTemplate<String, Object> redisTemplate, UsersApi usersApi, CatalogApi catalogApi, MeterRegistry registry) {
         this.redisTemplate = redisTemplate;
         this.usersApi = usersApi;
         this.catalogApi = catalogApi;
+        this.recordPlayTimer = Timer.builder("leaderboard.record_play")
+                .publishPercentileHistogram()
+                .register(registry);
     }
 
     private String artistKey(long artistId){
@@ -55,30 +61,28 @@ public class LeaderboardService {
 
     public void recordPlay(long artistId, long trackId, UUID userId){
         RedisSerializer<String> serializer = new StringRedisSerializer();
-        long startTime = System.nanoTime();
-        redisTemplate.executePipelined((RedisCallback<?>) connection -> {
-            byte[] artistKeyArtistId = serializer.serialize(artistKey(artistId));
-            byte[] valueArtistId = serializer.serialize(String.valueOf(artistId));
-            byte[] trackKeyTrackId = serializer.serialize(trackKey(trackId));
-            byte[] valueTrackId = serializer.serialize(String.valueOf(trackId));
-            byte[] artistTopTrackKey = serializer.serialize(artistTopTracksKey(artistId));
+        recordPlayTimer.record(() ->
+            redisTemplate.executePipelined((RedisCallback<?>) connection -> {
+                byte[] artistKeyArtistId = serializer.serialize(artistKey(artistId));
+                byte[] valueArtistId = serializer.serialize(String.valueOf(artistId));
+                byte[] trackKeyTrackId = serializer.serialize(trackKey(trackId));
+                byte[] valueTrackId = serializer.serialize(String.valueOf(trackId));
+                byte[] artistTopTrackKey = serializer.serialize(artistTopTracksKey(artistId));
 
-            byte[] serializedUserId = serializer.serialize(userId.toString());
+                byte[] serializedUserId = serializer.serialize(userId.toString());
 
-            byte[] globalArtistKey = serializer.serialize("leaderboard:global:artists");
-            byte[] globalTrackKey = serializer.serialize("leaderboard:global:tracks");
+                byte[] globalArtistKey = serializer.serialize("leaderboard:global:artists");
+                byte[] globalTrackKey = serializer.serialize("leaderboard:global:tracks");
 
-            connection.zSetCommands().zIncrBy(artistKeyArtistId, 1, serializedUserId);
-            connection.zSetCommands().zIncrBy(trackKeyTrackId, 1, serializedUserId);
-            connection.zSetCommands().zIncrBy(artistTopTrackKey, 1, valueTrackId);
-            connection.zSetCommands().zIncrBy(globalArtistKey, 1, valueArtistId);
-            connection.zSetCommands().zIncrBy(globalTrackKey, 1, valueTrackId);
+                connection.zSetCommands().zIncrBy(artistKeyArtistId, 1, serializedUserId);
+                connection.zSetCommands().zIncrBy(trackKeyTrackId, 1, serializedUserId);
+                connection.zSetCommands().zIncrBy(artistTopTrackKey, 1, valueTrackId);
+                connection.zSetCommands().zIncrBy(globalArtistKey, 1, valueArtistId);
+                connection.zSetCommands().zIncrBy(globalTrackKey, 1, valueTrackId);
 
-            return null;
-        });
-        double elapsedTime = (double) (System.nanoTime() - startTime) / 1e+6;
-        log.info("Redis pipelining in LeaderboardService completed in {} ms.", String.format("%.2f", elapsedTime));
-
+                return null;
+            })
+    );
 
     }
 

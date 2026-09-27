@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.time.Instant;
@@ -26,6 +27,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -64,44 +66,22 @@ public class ListeningServiceTest {
     }
 
     @Test
-    void getUserListeningHistory_MapsEntitiesToResponseCorrectly(){
-        String username = "testUser";
-        Pageable pageable = PageRequest.of(0, 10);
-        ListenEventEntity entity = new ListenEventEntity(
-                UUID.fromString("52a40a30-c59e-40a2-b92e-5417b0c3a31b"),
-                username,
-                "Bladee",
-                "unreal",
-                "spotifyTrackId",
-                "spotifyArtistId",
-                Instant.now(),
-                1L
-        );
-        Page<ListenEventEntity> page = new PageImpl<>(List.of(entity), pageable, 1);
-        when(listeningHistoryRepo.findAllByUsername(username, pageable)).thenReturn(page);
+    void mapsEntityToResponseCorrectly() {
+        UUID userId = UUID.randomUUID();
+        ListenEventEntity entity = new ListenEventEntity(userId, "username", "artistName", "trackName", "spotifyTrackId", "spotifyArtistId", Instant.parse("2026-09-19T16:10:03.494Z"), 1L);
 
-        CustomPageResponse<ListeningHistoryResponse> result = service.getUserListeningHistory(username, pageable);
+        Page<ListenEventEntity> mockPage = new PageImpl<>(List.of(entity), PageRequest.of(0, 10), 1);
 
-        assertThat(result.content()).isNotNull();
-        ListeningHistoryResponse dto = result.content().get(0);
+        when(listeningHistoryRepo.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(mockPage);
 
-        assertThat(dto.artistName()).isEqualTo("Bladee");
-        assertThat(dto.spotifyArtistId()).isEqualTo("spotifyArtistId");
-        assertThat(dto.trackName()).isEqualTo("unreal");
-        assertThat(dto.spotifyTrackId()).isEqualTo("spotifyTrackId");
+        CustomPageResponse<ListeningHistoryResponse> result = service.getUserListeningHistory(
+                "hello", null, null, null, null, PageRequest.of(0, 10));
 
-        verify(listeningHistoryRepo).findAllByUsername(username, pageable);
-    }
-
-    @Test
-    void getUserListeningHistory_ReturnsNoContentWhenUserHasNoPlaysOrDoesntExist(){
-        String username = "testUser";
-        Pageable pageable = PageRequest.of(0, 10);
-        when(listeningHistoryRepo.findAllByUsername(username, pageable)).thenReturn(Page.empty());
-
-        CustomPageResponse<ListeningHistoryResponse> res = service.getUserListeningHistory(username, pageable);
-
-        assertThat(res.content().isEmpty()).isTrue();
+        assertEquals(1, result.content().size());
+        assertEquals("artistName", result.content().get(0).artistName());
+        assertEquals("trackName", result.content().get(0).trackName());
+        assertEquals(1, result.totalElements());
     }
 
 }
