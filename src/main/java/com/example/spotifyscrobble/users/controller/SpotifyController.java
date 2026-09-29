@@ -24,6 +24,9 @@ public class SpotifyController {
     @Value("${SPOTIFY_CLIENT_SECRET}")
     private String clientSecret;
 
+    @Value("${SPOTIFY_REDIRECT_URL}")
+    private String redirectUrl;
+
     private final SpotifyApiClient spotifyApiClient;
     private final JwtDecoder jwtDecoder;
 
@@ -42,7 +45,7 @@ public class SpotifyController {
                 .fromUriString("https://accounts.spotify.com/authorize")
                 .queryParam("client_id", clientId)
                 .queryParam("scope", "user-read-currently-playing,user-read-recently-played")
-                .queryParam("redirect_uri", "http://127.0.0.1:8080/callback")
+                .queryParam("redirect_uri", "http://"+redirectUrl+":8080/callback")
                 .queryParam("state", state)
                 .queryParam("response_type", "code")
                 .build()
