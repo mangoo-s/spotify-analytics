@@ -1,6 +1,6 @@
 ## Spotylitics
 
-A Spring Boot backend that tracks and ranks music listening activity, using Redis Sorted Sets to power real-time track and artist leaderboards with sub-100ms response times through a multi-layer caching strategy. Built as a modular monolith (Spring Modulith) with JWT-based auth via Supabase, containerized with Docker.
+A Spring Boot backend that tracks and ranks music listening activity, using Redis Sorted Sets to power real-time track and artist leaderboards with sub-100ms response times through a multi-layer caching strategy. Built as a modular monolith (Spring Modulith) with JWT-based auth via Supabase, containerized with Docker. Deployed on AWS using EC2 & RDS. 
 
 ## Tech Stack
 - Backend Framework: Spring Boot
